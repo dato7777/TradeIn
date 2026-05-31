@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+frontend/.next/
+frontend/out/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.local
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Playwright
+playwright-report/
+test-results/
+
+# Uploads temp
+backend/tmp/

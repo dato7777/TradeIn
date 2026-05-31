@@ -1,0 +1,55 @@
+companies:
+  dynamica:
+    name: Dynamica
+    slug: dynamica
+    source_type: upload
+    trade_in_url: null
+    color: "#fce4ec"
+    grades:
+      - { key: a, label: "A תקין", summary_tier: 1 }
+      - { key: b, label: "B תקין", summary_tier: 2 }
+      - { key: c, label: "C שבור / סדוק", summary_tier: 3 }
+      - { key: d, label: "D תקול", summary_tier: 4 }
+
+  partner:
+    name: Partner
+    slug: partner
+    source_type: upload
+    trade_in_url: null
+    color: "#e3f2fd"
+    grades:
+      - { key: a, label: "תקין", summary_tier: 1 }
+
+  ksp:
+    name: KSP
+    slug: ksp
+    source_type: scraper
+    trade_in_url: "https://ksp.co.il/kspTradeIn/"
+    api_url: "https://ksp.co.il/kspTradeIn/server/actions.php?action=get-new-data"
+    color: "#fff9c4"
+    grades:
+      - { key: a, label: "כחדש לחלוטין", summary_tier: 1, api_key: A }
+      - { key: b, label: "ללא שבר / סדק", summary_tier: 2, api_key: B }
+      - { key: c, label: "שבר / סדק", summary_tier: 3, api_key: C }
+      - { key: d, label: "תקול", summary_tier: 4, api_key: D }
+
+  pelephone:
+    name: Pelephone
+    slug: pelephone
+    source_type: scraper
+    trade_in_url: "https://www.pelephone.co.il/ds/heb/eshop/trade-in/"
+    color: "#e8f5e9"
+    grades:
+      - { key: a, label: "תקין", summary_tier: 1, html_label: "תקין" }
+      - { key: b, label: "תקין חלקית", summary_tier: 3, html_label: "תקין חלקית" }
+      - { key: c, label: "תקול", summary_tier: 4, html_label: "תקול" }
+
+summary_tiers:
+  - tier: 1
+    label: "Tier 1 — Best condition"
+  - tier: 2
+    label: "Tier 2 — Good condition"
+  - tier: 3
+    label: "Tier 3 — Fair / cracked"
+  - tier: 4
+    label: "Tier 4 — Faulty"
