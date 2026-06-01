@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
 from datetime import datetime, timezone
 from typing import Any, Optional
-from urllib.parse import quote
 from uuid import UUID
 
 import certifi
@@ -20,24 +21,33 @@ KSP_USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 )
+SCRAPERAPI_ASYNC_JOBS_URL = "https://async.scraperapi.com/jobs"
+SCRAPERAPI_POLL_INTERVAL_SEC = 2.0
+SCRAPERAPI_POLL_MAX_ATTEMPTS = 90
 ALLOWED_MANUFACTURERS = {"Apple", "Samsung"}
 GRADE_API_KEYS = ["A", "B", "C", "D"]
 GRADE_TO_KEY = {"A": "a", "B": "b", "C": "c", "D": "d"}
 
 
 def resolve_ksp_proxy(https_proxy: str = "") -> str | None:
-    """Optional explicit HTTP proxy URL (not ScraperAPI — see build_scraper_api_request_url)."""
+    """Optional explicit HTTP proxy URL (not ScraperAPI — see build_scraper_api_job_payload)."""
     explicit = https_proxy.strip()
     return explicit or None
 
 
-def build_scraper_api_request_url(api_key: str, target_url: str = KSP_API_URL) -> str:
-    """ScraperAPI HTTP wrapper — ScraperAPI fetches KSP server-side (no proxy SSL on Render)."""
-    return (
-        "http://api.scraperapi.com/"
-        f"?api_key={quote(api_key.strip(), safe='')}"
-        f"&url={quote(target_url, safe='')}"
-    )
+def build_scraper_api_job_payload(api_key: str, target_url: str = KSP_API_URL) -> dict[str, Any]:
+    """ScraperAPI async job — sync wrapper is GET-only; KSP requires POST + JSON body."""
+    return {
+        "apiKey": api_key.strip(),
+        "url": target_url,
+        "method": "POST",
+        "headers": _ksp_api_headers(),
+        "body": "{}",
+        "apiParams": {
+            "country_code": "il",
+            "keep_headers": True,
+        },
+    }
 
 
 def _ksp_api_headers() -> dict[str, str]:
@@ -58,13 +68,46 @@ def _ksp_api_headers() -> dict[str, str]:
 
 def _ksp_client_kwargs(https_proxy: str | None) -> dict[str, Any]:
     kwargs: dict[str, Any] = {
-        "timeout": 120.0,
+        "timeout": 180.0,
         "follow_redirects": True,
         "verify": certifi.where(),
     }
     if https_proxy:
         kwargs["proxy"] = https_proxy
     return kwargs
+
+
+async def _fetch_ksp_via_scraper_api(client: httpx.AsyncClient, api_key: str) -> dict[str, Any]:
+    create_resp = await client.post(
+        SCRAPERAPI_ASYNC_JOBS_URL,
+        json=build_scraper_api_job_payload(api_key),
+    )
+    create_resp.raise_for_status()
+    job = create_resp.json()
+    status_url = job.get("statusUrl")
+    if not status_url:
+        raise RuntimeError("ScraperAPI did not return a statusUrl")
+
+    for _ in range(SCRAPERAPI_POLL_MAX_ATTEMPTS):
+        poll_resp = await client.get(status_url)
+        poll_resp.raise_for_status()
+        poll_data = poll_resp.json()
+        status = poll_data.get("status")
+        if status == "finished":
+            response = poll_data.get("response") or {}
+            sa_status = (response.get("headers") or {}).get("sa-statuscode")
+            if sa_status and str(sa_status) != "200":
+                raise RuntimeError(f"KSP returned HTTP {sa_status} via ScraperAPI")
+            body = response.get("body") or ""
+            try:
+                return json.loads(body)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError("ScraperAPI returned non-JSON KSP response") from exc
+        if status in ("failed", "error"):
+            raise RuntimeError(poll_data.get("error") or "ScraperAPI job failed")
+        await asyncio.sleep(SCRAPERAPI_POLL_INTERVAL_SEC)
+
+    raise RuntimeError("ScraperAPI job timed out waiting for KSP data")
 
 
 def _raise_ksp_http_error(exc: httpx.HTTPStatusError) -> None:
@@ -81,19 +124,22 @@ async def fetch_ksp_raw() -> dict[str, Any]:
     settings = get_settings()
     api_key = (settings.ksp_scraper_api_key or "").strip()
     https_proxy = resolve_ksp_proxy(settings.ksp_https_proxy)
-
-    request_url = build_scraper_api_request_url(api_key) if api_key else KSP_API_URL
     client_kwargs = _ksp_client_kwargs(https_proxy if not api_key else None)
 
     async with httpx.AsyncClient(**client_kwargs) as client:
         try:
-            response = await client.post(request_url, json={}, headers=_ksp_api_headers())
-            response.raise_for_status()
+            if api_key:
+                data = await _fetch_ksp_via_scraper_api(client, api_key)
+            else:
+                response = await client.post(KSP_API_URL, json={}, headers=_ksp_api_headers())
+                response.raise_for_status()
+                data = response.json()
         except httpx.HTTPStatusError as exc:
+            if api_key:
+                raise RuntimeError(f"ScraperAPI error: HTTP {exc.response.status_code}") from exc
             _raise_ksp_http_error(exc)
         except httpx.HTTPError as exc:
             raise RuntimeError(f"KSP fetch failed: {exc}") from exc
-        data = response.json()
 
     if not data.get("status"):
         raise RuntimeError(data.get("error_msg") or "KSP API returned status=false")

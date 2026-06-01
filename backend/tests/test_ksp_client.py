@@ -3,7 +3,7 @@
 from app.scrapers.companies.ksp import (
     KSP_API_URL,
     _ksp_api_headers,
-    build_scraper_api_request_url,
+    build_scraper_api_job_payload,
     parse_ksp_prices,
     resolve_ksp_proxy,
 )
@@ -67,9 +67,12 @@ def test_resolve_ksp_proxy_none_without_config():
     assert resolve_ksp_proxy() is None
 
 
-def test_build_scraper_api_request_url():
-    url = build_scraper_api_request_url("my-key")
-    assert url.startswith("http://api.scraperapi.com/")
-    assert "api_key=my-key" in url
-    assert "url=" in url
-    assert "kspTradeIn" in url
+def test_build_scraper_api_job_payload():
+    payload = build_scraper_api_job_payload("my-key")
+    assert payload["apiKey"] == "my-key"
+    assert payload["url"] == KSP_API_URL
+    assert payload["method"] == "POST"
+    assert payload["body"] == "{}"
+    assert payload["apiParams"]["country_code"] == "il"
+    assert payload["apiParams"]["keep_headers"] is True
+    assert payload["headers"]["Origin"] == "https://ksp.co.il"
