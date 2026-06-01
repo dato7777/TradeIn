@@ -20,6 +20,23 @@ function formatPrice(n: number | undefined) {
   return `₪${n.toLocaleString("he-IL")}`;
 }
 
+function maxPriceInRow(priceMap: Record<string, number | undefined>, slugs: string[]): number | null {
+  const values = slugs.map((s) => priceMap[s]).filter((p): p is number => p != null);
+  if (values.length === 0) return null;
+  return Math.max(...values);
+}
+
+function highestPriceCellClass(isHighest: boolean): string {
+  if (!isHighest) return "";
+  return [
+    "relative z-[1] font-semibold text-emerald-200",
+    "bg-gradient-to-b from-emerald-500/20 to-emerald-600/10",
+    "ring-1 ring-inset ring-emerald-400/50",
+    "shadow-[0_0_14px_rgba(52,211,153,0.12)]",
+    "rounded-md",
+  ].join(" ");
+}
+
 export function SummaryTierView({ data }: Props) {
   const companyMap = Object.fromEntries(data.companies.map((c) => [c.slug, c]));
 
@@ -76,11 +93,13 @@ export function SummaryTierView({ data }: Props) {
               <tbody>
                 {data.devices.map((device) => {
                   const tierData = device.tiers.find((t) => t.tier === tier.tier);
+                  const orderedSlugs = sortCompanySlugs(tier.companies);
                   const priceMap = Object.fromEntries(
                     (tierData?.prices || []).map((p) => [p.company, p.price])
                   );
-                  const hasAny = sortCompanySlugs(tier.companies).some((s) => priceMap[s] != null);
+                  const hasAny = orderedSlugs.some((s) => priceMap[s] != null);
                   if (!hasAny) return null;
+                  const rowMax = maxPriceInRow(priceMap, orderedSlugs);
                   return (
                     <tr
                       key={`${device.normalized_name}-${tier.tier}`}
@@ -92,19 +111,29 @@ export function SummaryTierView({ data }: Props) {
                       >
                         {device.normalized_name}
                       </td>
-                      {sortCompanySlugs(tier.companies).map((slug) => {
+                      {orderedSlugs.map((slug) => {
                         const co = companyMap[slug];
                         const price = priceMap[slug];
+                        const isHighest =
+                          price != null && rowMax != null && price === rowMax;
                         return (
                           <td
                             key={slug}
-                            className="px-2 sm:px-3 py-2 text-center tabular-nums border-b border-surface-border/50"
+                            className={`px-2 sm:px-3 py-2 text-center tabular-nums border-b border-surface-border/50 ${highestPriceCellClass(isHighest)}`}
                             style={
-                              price != null && co?.color
+                              !isHighest && price != null && co?.color
                                 ? { backgroundColor: `${co.color}12` }
                                 : undefined
                             }
                           >
+                            {isHighest && (
+                              <span
+                                className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-emerald-400/90"
+                                aria-hidden
+                              >
+                                best
+                              </span>
+                            )}
                             {formatPrice(price)}
                           </td>
                         );
