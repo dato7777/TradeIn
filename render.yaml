@@ -21,3 +21,5 @@ services:
         sync: false
       - key: ADMIN_EMAILS
         sync: false
+      - key: KSP_SCRAPER_API_KEY
+        sync: false

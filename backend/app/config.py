@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     admin_emails: str = "tomerbardao@tradein.local"
     # Optional: comma-separated extra origins (e.g. https://your-app.vercel.app)
     frontend_url: str = ""
+    # KSP blocks many cloud/datacenter IPs — route via ScraperAPI or custom proxy on Render.
+    ksp_scraper_api_key: str = ""
+    ksp_https_proxy: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

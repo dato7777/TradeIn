@@ -165,6 +165,21 @@ This applies files in `supabase/migrations/`.
 | DB connection failed | Use Session pooler URI + `?sslmode=require` |
 | Blank page on Vercel | Check env vars are set for **Production**, redeploy |
 | Render cold start | Wait ~30–60s after idle, or use paid plan |
+| KSP scrape **403** on Render | KSP blocks datacenter IPs. Add `KSP_SCRAPER_API_KEY` on Render ([ScraperAPI](https://www.scraperapi.com) free tier) and redeploy |
+
+### KSP scrape on Render (403 workaround)
+
+KSP blocks requests from cloud hosts (Render, AWS, etc.). Pelephone does not.
+
+1. Sign up at [scraperapi.com](https://www.scraperapi.com) (free tier: 5,000 requests/month).
+2. Copy your API key.
+3. **Render → resparts-api → Environment** → add:
+   ```
+   KSP_SCRAPER_API_KEY=your-key-here
+   ```
+4. Save and redeploy, then run **Extract Data → KSP** again.
+
+Alternative: set `KSP_HTTPS_PROXY` to any residential HTTP proxy URL.
 
 ---
 

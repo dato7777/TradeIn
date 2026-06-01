@@ -8,6 +8,7 @@ from uuid import UUID
 
 import httpx
 
+from app.config import get_settings
 from app.database import bulk_replace_company_prices, get_company_by_slug
 from app.services.normalizer import normalize_device_name
 
@@ -22,16 +23,19 @@ GRADE_API_KEYS = ["A", "B", "C", "D"]
 GRADE_TO_KEY = {"A": "a", "B": "b", "C": "c", "D": "d"}
 
 
-def _ksp_page_headers() -> dict[str, str]:
-    return {
-        "User-Agent": KSP_USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7",
-    }
+def resolve_ksp_proxy(https_proxy: str = "", scraper_api_key: str = "") -> str | None:
+    """Return outbound proxy URL for KSP when cloud/datacenter IPs are blocked."""
+    explicit = https_proxy.strip()
+    if explicit:
+        return explicit
+    api_key = scraper_api_key.strip()
+    if api_key:
+        return f"http://scraperapi:{api_key}@proxy-server.scraperapi.com:8001"
+    return None
 
 
 def _ksp_api_headers() -> dict[str, str]:
-    """Headers matching KSP trade-in XHR; blocks curl/python default UAs without Referer."""
+    """Headers matching KSP trade-in XHR."""
     return {
         "User-Agent": KSP_USER_AGENT,
         "Accept": "application/json, text/plain, */*",
@@ -46,14 +50,32 @@ def _ksp_api_headers() -> dict[str, str]:
     }
 
 
-async def fetch_ksp_raw() -> dict[str, Any]:
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-        # Warm session like the browser page load before the XHR.
-        page = await client.get(KSP_TRADE_IN_URL, headers=_ksp_page_headers())
-        page.raise_for_status()
+def _ksp_client_kwargs() -> dict[str, Any]:
+    settings = get_settings()
+    kwargs: dict[str, Any] = {"timeout": 90.0, "follow_redirects": True}
+    proxy = resolve_ksp_proxy(settings.ksp_https_proxy, settings.ksp_scraper_api_key)
+    if proxy:
+        kwargs["proxy"] = proxy
+    return kwargs
 
+
+def _raise_ksp_http_error(exc: httpx.HTTPStatusError) -> None:
+    if exc.response.status_code == 403:
+        raise RuntimeError(
+            "KSP blocked this server (403). On Render/cloud hosting, set "
+            "KSP_SCRAPER_API_KEY (free tier at https://www.scraperapi.com) or "
+            "KSP_HTTPS_PROXY to a residential proxy URL."
+        ) from exc
+    raise exc
+
+
+async def fetch_ksp_raw() -> dict[str, Any]:
+    async with httpx.AsyncClient(**_ksp_client_kwargs()) as client:
         response = await client.post(KSP_API_URL, json={}, headers=_ksp_api_headers())
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            _raise_ksp_http_error(exc)
         data = response.json()
 
     if not data.get("status"):
