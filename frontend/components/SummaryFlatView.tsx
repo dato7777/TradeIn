@@ -124,10 +124,14 @@ export function SummaryFlatView({ data }: Props) {
   return (
     <div className="rounded-xl border border-surface-border bg-surface-card w-full min-w-0">
       <div className="px-3 sm:px-4 py-3 border-b border-surface-border bg-surface/50 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="font-semibold text-white text-sm sm:text-base">השוואה מאוחדת</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            הצעת מחיר גבוה ביותר הודגש -בקשת רפי
+        <div className="min-w-0 text-right" dir="rtl">
+          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight inline-block border-b-2 border-sky-400/70 pb-1">
+            השוואה מאוחדת
+          </h2>
+          <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-amber-200 bg-amber-500/15 border border-amber-400/35 rounded-lg px-3 py-2 shadow-[inset_0_1px_0_rgba(251,191,36,0.12)]">
+            <span className="font-semibold text-amber-300">*</span>
+            הצעת מחיר הגבוה ביותר מודגשת — לפי בקשתו של רפי
+            <span className="font-semibold text-amber-300">*</span>
           </p>
         </div>
       </div>

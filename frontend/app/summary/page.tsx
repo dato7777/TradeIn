@@ -51,6 +51,8 @@ export default function SummaryPage() {
     <div className="min-w-0">
       <PageHeader
         title="סיכום השוואת מחירי טרייד-אין"
+        rtl
+        titleClassName="text-transparent bg-clip-text bg-gradient-to-l from-sky-200 via-white to-blue-100 drop-shadow-sm tracking-tight"
         subtitle={
           view === "flat"
             ? "All grade prices for each device in one row"
