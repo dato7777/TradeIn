@@ -1,6 +1,6 @@
 """Tests for KSP API response parsing."""
 
-from app.scrapers.companies.ksp import parse_ksp_prices
+from app.scrapers.companies.ksp import _ksp_api_headers, parse_ksp_prices
 
 SAMPLE = {
     "status": True,
@@ -42,3 +42,11 @@ def test_ksp_uses_full_not_clean():
     records = parse_ksp_prices(SAMPLE)
     for r in records:
         assert r["price"] != 407
+
+
+def test_ksp_api_headers_mimic_browser():
+    headers = _ksp_api_headers()
+    assert "Mozilla" in headers["User-Agent"]
+    assert headers["Referer"].startswith("https://ksp.co.il/kspTradeIn")
+    assert headers["Origin"] == "https://ksp.co.il"
+    assert headers["X-Requested-With"] == "XMLHttpRequest"
