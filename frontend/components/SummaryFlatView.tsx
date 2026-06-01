@@ -82,12 +82,12 @@ function tierHighlightsForRow(
   }
 
   const best = new Set<string>();
-  for (const tierCols of byTier.values()) {
+  byTier.forEach((tierCols) => {
     const keys = highestPriceKeys(
       tierCols.map((col) => ({ key: col.id, price: priceMap.get(col.id) }))
     );
     keys.forEach((id) => best.add(id));
-  }
+  });
   return best;
 }
 
