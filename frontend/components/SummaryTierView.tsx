@@ -4,6 +4,12 @@ import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
 import {
+  formatPrice,
+  highestPriceCellClass,
+  highestPriceCellStyle,
+  highestPriceKeys,
+} from "@/lib/highestPriceHighlight";
+import {
   TableScroll,
   headerTh,
   stickyTdDeviceLtr,
@@ -13,43 +19,6 @@ import {
 
 interface Props {
   data: SummaryResponse;
-}
-
-function formatPrice(n: number | undefined) {
-  if (n == null) return "—";
-  return `₪${n.toLocaleString("he-IL")}`;
-}
-
-function maxPriceInRow(priceMap: Record<string, number | undefined>, slugs: string[]): number | null {
-  const values = slugs.map((s) => priceMap[s]).filter((p): p is number => p != null);
-  if (values.length === 0) return null;
-  return Math.max(...values);
-}
-
-function highestPriceCellClass(isHighest: boolean): string {
-  if (!isHighest) return "text-slate-300";
-  return "relative p-1 sm:p-1.5";
-}
-
-function HighestPriceBadge({ price }: { price: number }) {
-  return (
-    <span className="inline-flex flex-col items-center gap-0.5 sm:gap-1 w-full max-w-[120px] mx-auto">
-      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-950 bg-amber-400 px-2 py-0.5 rounded-full shadow-md ring-1 ring-amber-200/80">
-        Best price
-      </span>
-      <span
-        className={[
-          "block w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg",
-          "text-base sm:text-lg font-extrabold tabular-nums text-white",
-          "bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600",
-          "shadow-[0_0_0_2px_rgba(251,191,36,0.85),0_8px_24px_rgba(245,158,11,0.45)]",
-          "ring-2 ring-amber-200/90",
-        ].join(" ")}
-      >
-        {formatPrice(price)}
-      </span>
-    </span>
-  );
 }
 
 export function SummaryTierView({ data }: Props) {
@@ -114,9 +83,9 @@ export function SummaryTierView({ data }: Props) {
                   );
                   const hasAny = orderedSlugs.some((s) => priceMap[s] != null);
                   if (!hasAny) return null;
-                  const rowMax = maxPriceInRow(priceMap, orderedSlugs);
-                  const pricedCount = orderedSlugs.filter((s) => priceMap[s] != null).length;
-                  const canHighlight = pricedCount >= 2;
+                  const bestSlugs = highestPriceKeys(
+                    orderedSlugs.map((slug) => ({ key: slug, price: priceMap[slug] }))
+                  );
                   return (
                     <tr
                       key={`${device.normalized_name}-${tier.tier}`}
@@ -131,31 +100,18 @@ export function SummaryTierView({ data }: Props) {
                       {orderedSlugs.map((slug) => {
                         const co = companyMap[slug];
                         const price = priceMap[slug];
-                        const isHighest =
-                          canHighlight &&
-                          price != null &&
-                          rowMax != null &&
-                          price === rowMax;
+                        const isHighest = bestSlugs.has(slug);
+                        const baseBg =
+                          !isHighest && price != null && co?.color
+                            ? { backgroundColor: `${co.color}12` }
+                            : undefined;
                         return (
                           <td
                             key={slug}
-                            className={`px-1 sm:px-2 py-2 sm:py-2.5 text-center tabular-nums border-b border-surface-border/50 align-middle ${highestPriceCellClass(isHighest)}`}
-                            style={
-                              !isHighest && price != null && co?.color
-                                ? { backgroundColor: `${co.color}12` }
-                                : isHighest
-                                  ? {
-                                      backgroundColor: "rgba(245, 158, 11, 0.08)",
-                                      boxShadow: "inset 0 0 0 1px rgba(251, 191, 36, 0.35)",
-                                    }
-                                  : undefined
-                            }
+                            className={`px-1 sm:px-2 py-2 text-center tabular-nums text-xs sm:text-sm border-b border-surface-border/50 align-middle ${highestPriceCellClass(isHighest)}`}
+                            style={highestPriceCellStyle(isHighest, tier.tier, baseBg)}
                           >
-                            {isHighest && price != null ? (
-                              <HighestPriceBadge price={price} />
-                            ) : (
-                              formatPrice(price)
-                            )}
+                            {formatPrice(price)}
                           </td>
                         );
                       })}

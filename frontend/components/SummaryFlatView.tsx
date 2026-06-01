@@ -4,6 +4,12 @@ import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
 import { tierColumnStyle, tierGroupHeaderStyle } from "@/lib/tierStyles";
+import {
+  formatPrice,
+  highestPriceCellClass,
+  highestPriceCellStyle,
+  highestPriceKeys,
+} from "@/lib/highestPriceHighlight";
 import { useCompactTable } from "@/lib/useCompactTable";
 import {
   TableScroll,
@@ -60,9 +66,29 @@ function buildPriceMap(device: SummaryResponse["devices"][0]) {
   return map;
 }
 
-function formatPrice(n: number | undefined) {
-  if (n == null) return "—";
-  return `₪${n.toLocaleString("he-IL")}`;
+function formatPriceCell(n: number | undefined) {
+  return formatPrice(n);
+}
+
+function tierHighlightsForRow(
+  columns: FlatColumn[],
+  priceMap: Map<string, number>
+): Set<string> {
+  const byTier = new Map<number, FlatColumn[]>();
+  for (const col of columns) {
+    const list = byTier.get(col.tier) || [];
+    list.push(col);
+    byTier.set(col.tier, list);
+  }
+
+  const best = new Set<string>();
+  for (const tierCols of byTier.values()) {
+    const keys = highestPriceKeys(
+      tierCols.map((col) => ({ key: col.id, price: priceMap.get(col.id) }))
+    );
+    keys.forEach((id) => best.add(id));
+  }
+  return best;
 }
 
 function tierGroups(columns: FlatColumn[]) {
@@ -175,6 +201,7 @@ export function SummaryFlatView({ data }: Props) {
           <tbody>
             {visibleDevices.map((device) => {
               const priceMap = buildPriceMap(device);
+              const bestColumnIds = tierHighlightsForRow(columns, priceMap);
               return (
                 <tr key={device.normalized_name} className="hover:bg-surface/30">
                   <td
@@ -187,18 +214,20 @@ export function SummaryFlatView({ data }: Props) {
                     const prev = columns[i - 1];
                     const tierStart = !prev || prev.tier !== col.tier;
                     const price = priceMap.get(col.id);
+                    const isHighest = bestColumnIds.has(col.id);
+                    const baseStyle = {
+                      ...tierCellStyle(col.tier, tierStart, i),
+                      ...(price != null && !isHighest
+                        ? { backgroundColor: `${col.color}22` }
+                        : {}),
+                    };
                     return (
                       <td
                         key={col.id}
-                        className="px-1 sm:px-2 py-2 text-center tabular-nums text-xs sm:text-sm border-b border-surface-border/50"
-                        style={{
-                          ...tierCellStyle(col.tier, tierStart, i),
-                          ...(price != null
-                            ? { backgroundColor: `${col.color}22` }
-                            : undefined),
-                        }}
+                        className={`px-1 sm:px-2 py-2 text-center tabular-nums text-xs sm:text-sm border-b border-surface-border/50 ${highestPriceCellClass(isHighest)}`}
+                        style={highestPriceCellStyle(isHighest, col.tier, baseStyle)}
                       >
-                        {formatPrice(price)}
+                        {formatPriceCell(price)}
                       </td>
                     );
                   })}
