@@ -27,14 +27,29 @@ function maxPriceInRow(priceMap: Record<string, number | undefined>, slugs: stri
 }
 
 function highestPriceCellClass(isHighest: boolean): string {
-  if (!isHighest) return "";
-  return [
-    "relative z-[1] font-semibold text-emerald-200",
-    "bg-gradient-to-b from-emerald-500/20 to-emerald-600/10",
-    "ring-1 ring-inset ring-emerald-400/50",
-    "shadow-[0_0_14px_rgba(52,211,153,0.12)]",
-    "rounded-md",
-  ].join(" ");
+  if (!isHighest) return "text-slate-300";
+  return "relative p-1 sm:p-1.5";
+}
+
+function HighestPriceBadge({ price }: { price: number }) {
+  return (
+    <span className="inline-flex flex-col items-center gap-0.5 sm:gap-1 w-full max-w-[120px] mx-auto">
+      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-950 bg-amber-400 px-2 py-0.5 rounded-full shadow-md ring-1 ring-amber-200/80">
+        Best price
+      </span>
+      <span
+        className={[
+          "block w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg",
+          "text-base sm:text-lg font-extrabold tabular-nums text-white",
+          "bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600",
+          "shadow-[0_0_0_2px_rgba(251,191,36,0.85),0_8px_24px_rgba(245,158,11,0.45)]",
+          "ring-2 ring-amber-200/90",
+        ].join(" ")}
+      >
+        {formatPrice(price)}
+      </span>
+    </span>
+  );
 }
 
 export function SummaryTierView({ data }: Props) {
@@ -100,6 +115,8 @@ export function SummaryTierView({ data }: Props) {
                   const hasAny = orderedSlugs.some((s) => priceMap[s] != null);
                   if (!hasAny) return null;
                   const rowMax = maxPriceInRow(priceMap, orderedSlugs);
+                  const pricedCount = orderedSlugs.filter((s) => priceMap[s] != null).length;
+                  const canHighlight = pricedCount >= 2;
                   return (
                     <tr
                       key={`${device.normalized_name}-${tier.tier}`}
@@ -115,26 +132,30 @@ export function SummaryTierView({ data }: Props) {
                         const co = companyMap[slug];
                         const price = priceMap[slug];
                         const isHighest =
-                          price != null && rowMax != null && price === rowMax;
+                          canHighlight &&
+                          price != null &&
+                          rowMax != null &&
+                          price === rowMax;
                         return (
                           <td
                             key={slug}
-                            className={`px-2 sm:px-3 py-2 text-center tabular-nums border-b border-surface-border/50 ${highestPriceCellClass(isHighest)}`}
+                            className={`px-1 sm:px-2 py-2 sm:py-2.5 text-center tabular-nums border-b border-surface-border/50 align-middle ${highestPriceCellClass(isHighest)}`}
                             style={
                               !isHighest && price != null && co?.color
                                 ? { backgroundColor: `${co.color}12` }
-                                : undefined
+                                : isHighest
+                                  ? {
+                                      backgroundColor: "rgba(245, 158, 11, 0.08)",
+                                      boxShadow: "inset 0 0 0 1px rgba(251, 191, 36, 0.35)",
+                                    }
+                                  : undefined
                             }
                           >
-                            {isHighest && (
-                              <span
-                                className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-emerald-400/90"
-                                aria-hidden
-                              >
-                                best
-                              </span>
+                            {isHighest && price != null ? (
+                              <HighestPriceBadge price={price} />
+                            ) : (
+                              formatPrice(price)
                             )}
-                            {formatPrice(price)}
                           </td>
                         );
                       })}
