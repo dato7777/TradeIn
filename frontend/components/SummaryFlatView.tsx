@@ -125,9 +125,9 @@ export function SummaryFlatView({ data }: Props) {
     <div className="rounded-xl border border-surface-border bg-surface-card w-full min-w-0">
       <div className="px-3 sm:px-4 py-3 border-b border-surface-border bg-surface/50 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="font-semibold text-white text-sm sm:text-base">Unified comparison</h2>
+          <h2 className="font-semibold text-white text-sm sm:text-base">השוואה מאוחדת</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            One row per device — scroll right for more tiers
+            הצעת מחיר גבוה ביותר הודגש -בקשת רפי
           </p>
         </div>
       </div>

@@ -50,7 +50,7 @@ export default function SummaryPage() {
   return (
     <div className="min-w-0">
       <PageHeader
-        title="Summary Comparison"
+        title="סיכום השוואת מחירי טרייד-אין"
         subtitle={
           view === "flat"
             ? "All grade prices for each device in one row"
@@ -97,7 +97,7 @@ export default function SummaryPage() {
         onBrandChange={setBrand}
       />
 
-      {loading && <p className="text-slate-400 text-sm">Loading...</p>}
+      {loading && <p className="text-slate-400 text-sm">טוען נתונים ...</p>}
       {error && <p className="text-red-400 text-sm">{error}</p>}
       {data && !loading && data.devices.length === 0 && (
         <div className="rounded-xl border border-surface-border bg-surface-card p-6 sm:p-8 text-center">
