@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any, Optional
+from urllib.parse import quote
 from uuid import UUID
 
+import certifi
 import httpx
 
 from app.config import get_settings
@@ -23,15 +25,19 @@ GRADE_API_KEYS = ["A", "B", "C", "D"]
 GRADE_TO_KEY = {"A": "a", "B": "b", "C": "c", "D": "d"}
 
 
-def resolve_ksp_proxy(https_proxy: str = "", scraper_api_key: str = "") -> str | None:
-    """Return outbound proxy URL for KSP when cloud/datacenter IPs are blocked."""
+def resolve_ksp_proxy(https_proxy: str = "") -> str | None:
+    """Optional explicit HTTP proxy URL (not ScraperAPI — see build_scraper_api_request_url)."""
     explicit = https_proxy.strip()
-    if explicit:
-        return explicit
-    api_key = scraper_api_key.strip()
-    if api_key:
-        return f"http://scraperapi:{api_key}@proxy-server.scraperapi.com:8001"
-    return None
+    return explicit or None
+
+
+def build_scraper_api_request_url(api_key: str, target_url: str = KSP_API_URL) -> str:
+    """ScraperAPI HTTP wrapper — ScraperAPI fetches KSP server-side (no proxy SSL on Render)."""
+    return (
+        "http://api.scraperapi.com/"
+        f"?api_key={quote(api_key.strip(), safe='')}"
+        f"&url={quote(target_url, safe='')}"
+    )
 
 
 def _ksp_api_headers() -> dict[str, str]:
@@ -50,12 +56,14 @@ def _ksp_api_headers() -> dict[str, str]:
     }
 
 
-def _ksp_client_kwargs() -> dict[str, Any]:
-    settings = get_settings()
-    kwargs: dict[str, Any] = {"timeout": 90.0, "follow_redirects": True}
-    proxy = resolve_ksp_proxy(settings.ksp_https_proxy, settings.ksp_scraper_api_key)
-    if proxy:
-        kwargs["proxy"] = proxy
+def _ksp_client_kwargs(https_proxy: str | None) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {
+        "timeout": 120.0,
+        "follow_redirects": True,
+        "verify": certifi.where(),
+    }
+    if https_proxy:
+        kwargs["proxy"] = https_proxy
     return kwargs
 
 
@@ -70,12 +78,21 @@ def _raise_ksp_http_error(exc: httpx.HTTPStatusError) -> None:
 
 
 async def fetch_ksp_raw() -> dict[str, Any]:
-    async with httpx.AsyncClient(**_ksp_client_kwargs()) as client:
-        response = await client.post(KSP_API_URL, json={}, headers=_ksp_api_headers())
+    settings = get_settings()
+    api_key = (settings.ksp_scraper_api_key or "").strip()
+    https_proxy = resolve_ksp_proxy(settings.ksp_https_proxy)
+
+    request_url = build_scraper_api_request_url(api_key) if api_key else KSP_API_URL
+    client_kwargs = _ksp_client_kwargs(https_proxy if not api_key else None)
+
+    async with httpx.AsyncClient(**client_kwargs) as client:
         try:
+            response = await client.post(request_url, json={}, headers=_ksp_api_headers())
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             _raise_ksp_http_error(exc)
+        except httpx.HTTPError as exc:
+            raise RuntimeError(f"KSP fetch failed: {exc}") from exc
         data = response.json()
 
     if not data.get("status"):

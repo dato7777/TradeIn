@@ -1,6 +1,12 @@
 """Tests for KSP API response parsing."""
 
-from app.scrapers.companies.ksp import _ksp_api_headers, parse_ksp_prices, resolve_ksp_proxy
+from app.scrapers.companies.ksp import (
+    KSP_API_URL,
+    _ksp_api_headers,
+    build_scraper_api_request_url,
+    parse_ksp_prices,
+    resolve_ksp_proxy,
+)
 
 SAMPLE = {
     "status": True,
@@ -52,18 +58,18 @@ def test_ksp_api_headers_mimic_browser():
     assert headers["X-Requested-With"] == "XMLHttpRequest"
 
 
-def test_resolve_ksp_proxy_prefers_explicit_https_proxy():
-    proxy = resolve_ksp_proxy(
-        https_proxy="http://user:pass@proxy.example:8080",
-        scraper_api_key="abc",
-    )
+def test_resolve_ksp_proxy_explicit():
+    proxy = resolve_ksp_proxy(https_proxy="http://user:pass@proxy.example:8080")
     assert proxy == "http://user:pass@proxy.example:8080"
-
-
-def test_resolve_ksp_proxy_scraper_api_key():
-    proxy = resolve_ksp_proxy(scraper_api_key="my-key")
-    assert proxy == "http://scraperapi:my-key@proxy-server.scraperapi.com:8001"
 
 
 def test_resolve_ksp_proxy_none_without_config():
     assert resolve_ksp_proxy() is None
+
+
+def test_build_scraper_api_request_url():
+    url = build_scraper_api_request_url("my-key")
+    assert url.startswith("http://api.scraperapi.com/")
+    assert "api_key=my-key" in url
+    assert "url=" in url
+    assert "kspTradeIn" in url

@@ -177,6 +177,7 @@ KSP blocks requests from cloud hosts (Render, AWS, etc.). Pelephone does not.
    ```
    KSP_SCRAPER_API_KEY=your-key-here
    ```
+   Uses ScraperAPI's HTTP API (not a local SSL proxy tunnel).
 4. Save and redeploy, then run **Extract Data → KSP** again.
 
 Alternative: set `KSP_HTTPS_PROXY` to any residential HTTP proxy URL.
