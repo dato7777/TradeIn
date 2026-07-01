@@ -79,7 +79,7 @@ def get_all_companies_last_updated() -> dict[str, Any]:
                GREATEST(MAX(cp.scraped_at), MAX(cp.uploaded_at)) AS last_updated
         FROM companies co
         LEFT JOIN company_prices cp ON cp.company_id = co.id
-        GROUP BY co.slug
+        GROUP BY co.slug, co.name
         ORDER BY co.name
         """
     )
