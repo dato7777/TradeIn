@@ -102,7 +102,7 @@ export function CompanyPriceUpdatesPanel({ companies }: { companies: CompanyUpda
             </h3>
           </div>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
-            תאריך טעינה אחרון לכל חברה
+            תאריך עדכון אחרון  
           </p>
         </div>
 
