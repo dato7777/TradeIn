@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
-import { CompanyPriceUpdatesList } from "@/components/PriceUpdatedAt";
+import { CompanyPriceUpdatesPanel } from "@/components/PriceUpdatedAt";
 import { tierColumnStyle, tierGroupHeaderStyle } from "@/lib/tierStyles";
 import {
   formatPrice,
@@ -143,9 +143,20 @@ export function SummaryFlatView({ data }: Props) {
   const colW = compact ? 96 : 120;
   const tableWidth = deviceColW + columns.length * colW;
 
+  const sortedCompanies = useMemo(
+    () =>
+      sortCompanySlugs(data.companies.map((c) => c.slug)).map(
+        (slug) => data.companies.find((c) => c.slug === slug)!
+      ),
+    [data.companies]
+  );
+
   return (
-    <div className="rounded-xl border border-surface-border bg-surface-card w-full min-w-0">
-      <div className="px-3 sm:px-4 py-3 border-b border-surface-border bg-surface/50 flex flex-wrap items-center justify-between gap-2">
+    <div className="w-full min-w-0">
+      <CompanyPriceUpdatesPanel companies={sortedCompanies} />
+
+      <div className="rounded-xl border border-surface-border bg-surface-card w-full min-w-0">
+      <div className="px-3 sm:px-4 py-3 border-b border-surface-border bg-surface/50">
         <div className="min-w-0 text-right" dir="rtl">
           <h2 className="text-base sm:text-lg font-bold text-white tracking-tight inline-block border-b-2 border-sky-400/70 pb-1">
             השוואה מאוחדת
@@ -155,11 +166,6 @@ export function SummaryFlatView({ data }: Props) {
             הצעת מחיר הגבוה ביותר מודגשת — לפי בקשתו של רפי
             <span className="font-semibold text-amber-300">*</span>
           </p>
-          <CompanyPriceUpdatesList
-            companies={sortCompanySlugs(data.companies.map((c) => c.slug)).map(
-              (slug) => data.companies.find((c) => c.slug === slug)!
-            )}
-          />
         </div>
       </div>
       <TableScroll className="rounded-b-xl w-full -mx-px">
@@ -268,6 +274,7 @@ export function SummaryFlatView({ data }: Props) {
           </tbody>
         </table>
       </TableScroll>
+      </div>
     </div>
   );
 }
