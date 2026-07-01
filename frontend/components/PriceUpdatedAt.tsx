@@ -33,10 +33,60 @@ export interface CompanyUpdateInfo {
   price_updated_at?: string | null;
 }
 
+function ClockIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  );
+}
+
+/** Toggle button for summary toolbar — shows/hides CompanyPriceUpdatesPanel. */
+export function PriceUpdatesToggleButton({
+  open,
+  onClick,
+}: {
+  open: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-controls="company-price-updates-panel"
+      className={[
+        "inline-flex items-center justify-center gap-2 rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-all",
+        "border shadow-sm",
+        open
+          ? "bg-sky-500/20 border-sky-400/50 text-sky-100 shadow-[0_0_20px_rgba(56,189,248,0.15)]"
+          : "bg-surface-card border-surface-border text-slate-200 hover:border-sky-400/40 hover:text-white hover:bg-surface/80",
+      ].join(" ")}
+      dir="rtl"
+    >
+      <span
+        className={`flex h-7 w-7 items-center justify-center rounded-full border ${
+          open
+            ? "bg-sky-500/25 border-sky-400/40 text-sky-200"
+            : "bg-surface border-surface-border text-slate-400"
+        }`}
+      >
+        <ClockIcon className="h-4 w-4" />
+      </span>
+      <span>מתי עודכנו המחירים</span>
+    </button>
+  );
+}
+
 /** Standalone panel — vertical list of per-company update times (summary unified view). */
 export function CompanyPriceUpdatesPanel({ companies }: { companies: CompanyUpdateInfo[] }) {
   return (
     <section
+      id="company-price-updates-panel"
       className="mx-auto w-full max-w-md sm:max-w-lg mb-4 sm:mb-5"
       dir="rtl"
       aria-label="תאריכי עדכון מחירים"
@@ -44,24 +94,15 @@ export function CompanyPriceUpdatesPanel({ companies }: { companies: CompanyUpda
       <div className="rounded-xl border border-surface-border bg-gradient-to-b from-surface-card to-surface/80 shadow-lg overflow-hidden">
         <div className="px-4 py-3 border-b border-surface-border bg-surface/60 text-center">
           <div className="inline-flex items-center justify-center gap-2">
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300"
-              aria-hidden
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300">
+              <ClockIcon />
             </span>
             <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-              מתי עודכנו המחירים?
+              עדכון מחירים לפי חברה
             </h3>
           </div>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
-            תאריך טעינה אחרון לכל חברה — נפרד מטבלת ההשוואה
+            תאריך טעינה אחרון לכל חברה
           </p>
         </div>
 

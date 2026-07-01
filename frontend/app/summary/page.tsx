@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ExcelActionButtons } from "@/components/ExcelActionButtons";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  CompanyPriceUpdatesPanel,
+  PriceUpdatesToggleButton,
+} from "@/components/PriceUpdatedAt";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { SummaryFlatView } from "@/components/SummaryFlatView";
 import { SummaryTierView } from "@/components/SummaryTierView";
+import { sortCompanySlugs } from "@/lib/companyOrder";
 import { apiDownload, apiFetch, type SummaryResponse, type UserMe } from "@/lib/api";
 
 type SummaryViewMode = "tier" | "flat";
@@ -18,6 +23,17 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [updatesOpen, setUpdatesOpen] = useState(false);
+
+  const sortedCompanies = useMemo(
+    () =>
+      data
+        ? sortCompanySlugs(data.companies.map((c) => c.slug)).map(
+            (slug) => data.companies.find((c) => c.slug === slug)!
+          )
+        : [],
+    [data]
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,39 +74,47 @@ export default function SummaryPage() {
             ? "All grade prices for each device in one row"
             : "Prices grouped by condition tier across all companies"
         }
-        actions={
-          <>
-            <div className="inline-flex w-full sm:w-auto rounded-lg border border-surface-border bg-surface-card p-1 text-sm">
-              <button
-                type="button"
-                onClick={() => setView("flat")}
-                className={`flex-1 sm:flex-none rounded-md px-3 py-1.5 transition-colors ${
-                  view === "flat"
-                    ? "bg-accent text-white"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Unified row
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("tier")}
-                className={`flex-1 sm:flex-none rounded-md px-3 py-1.5 transition-colors ${
-                  view === "tier"
-                    ? "bg-accent text-white"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                By tier
-              </button>
-            </div>
-            <ExcelActionButtons
-              showUpload={isAdmin}
-              onDownload={() => apiDownload("/api/export/summary", "summary.xlsx")}
-            />
-          </>
-        }
       />
+
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 sm:mb-5 -mt-2">
+        <div className="hidden sm:block flex-1 min-w-0" />
+        <div className="flex justify-center sm:shrink-0">
+          <PriceUpdatesToggleButton
+            open={updatesOpen}
+            onClick={() => setUpdatesOpen((o) => !o)}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 flex-1 min-w-0">
+          <div className="inline-flex w-full sm:w-auto rounded-lg border border-surface-border bg-surface-card p-1 text-sm">
+            <button
+              type="button"
+              onClick={() => setView("flat")}
+              className={`flex-1 sm:flex-none rounded-md px-3 py-1.5 transition-colors ${
+                view === "flat"
+                  ? "bg-accent text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Unified row
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("tier")}
+              className={`flex-1 sm:flex-none rounded-md px-3 py-1.5 transition-colors ${
+                view === "tier"
+                  ? "bg-accent text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              By tier
+            </button>
+          </div>
+          <ExcelActionButtons
+            showUpload={isAdmin}
+            onDownload={() => apiDownload("/api/export/summary", "summary.xlsx")}
+          />
+        </div>
+      </div>
 
       <SearchFilterBar
         value={search}
@@ -111,7 +135,16 @@ export default function SummaryPage() {
         </div>
       )}
       {data && !loading && data.devices.length > 0 && (
-        view === "flat" ? <SummaryFlatView data={data} /> : <SummaryTierView data={data} />
+        <>
+          {updatesOpen && view === "flat" && (
+            <CompanyPriceUpdatesPanel companies={sortedCompanies} />
+          )}
+          {view === "flat" ? (
+            <SummaryFlatView data={data} />
+          ) : (
+            <SummaryTierView data={data} />
+          )}
+        </>
       )}
     </div>
   );
