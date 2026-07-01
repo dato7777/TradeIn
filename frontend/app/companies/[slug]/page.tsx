@@ -6,6 +6,7 @@ import { CompanyPriceTable } from "@/components/CompanyPriceTable";
 import { PageHeader } from "@/components/PageHeader";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { DownloadExcelButton } from "@/components/ExcelActionButtons";
+import { PriceUpdatedAt } from "@/components/PriceUpdatedAt";
 import { apiDownload, apiFetch, type CompanyPricesResponse } from "@/lib/api";
 
 export default function CompanyPage() {
@@ -46,6 +47,7 @@ export default function CompanyPage() {
       <PageHeader
         title={data?.company.name || slug}
         subtitle={data ? `${data.total} devices` : "Loading..."}
+        center={<PriceUpdatedAt updatedAt={data?.company.price_updated_at} />}
         actions={
           <DownloadExcelButton
             className="w-full sm:w-auto"

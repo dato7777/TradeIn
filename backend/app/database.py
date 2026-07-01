@@ -60,6 +60,32 @@ def get_all_companies() -> list[dict[str, Any]]:
     return fetch_all("SELECT * FROM companies ORDER BY name")
 
 
+def get_company_last_updated(company_id: UUID) -> Any:
+    row = fetch_one(
+        """
+        SELECT GREATEST(MAX(scraped_at), MAX(uploaded_at)) AS last_updated
+        FROM company_prices
+        WHERE company_id = %s
+        """,
+        (str(company_id),),
+    )
+    return row["last_updated"] if row else None
+
+
+def get_all_companies_last_updated() -> dict[str, Any]:
+    rows = fetch_all(
+        """
+        SELECT co.slug,
+               GREATEST(MAX(cp.scraped_at), MAX(cp.uploaded_at)) AS last_updated
+        FROM companies co
+        LEFT JOIN company_prices cp ON cp.company_id = co.id
+        GROUP BY co.slug
+        ORDER BY co.name
+        """
+    )
+    return {r["slug"]: r["last_updated"] for r in rows if r.get("last_updated")}
+
+
 def delete_company_prices(company_id: UUID) -> None:
     execute("DELETE FROM company_prices WHERE company_id = %s", (str(company_id),))
 

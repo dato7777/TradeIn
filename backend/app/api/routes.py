@@ -14,7 +14,9 @@ from app.database import (
     execute_returning,
     fetch_all,
     get_all_companies,
+    get_all_companies_last_updated,
     get_company_by_slug,
+    get_company_last_updated,
     grade_columns_list,
 )
 from app.scrapers.orchestrator import create_job, get_job, run_job_background
@@ -37,6 +39,7 @@ def auth_me(user: dict = Depends(get_current_user)):
 @router.get("/companies")
 def list_companies(_user: dict = Depends(get_current_user)):
     companies = get_all_companies()
+    updated_map = get_all_companies_last_updated()
     result = []
     for c in companies:
         count_row = fetch_all(
@@ -51,6 +54,7 @@ def list_companies(_user: dict = Depends(get_current_user)):
                 "grades": grade_columns_list(c),
                 "color": c.get("color"),
                 "device_count": count_row[0]["cnt"] if count_row else 0,
+                "price_updated_at": updated_map.get(c["slug"]),
             }
         )
     return result
@@ -98,7 +102,13 @@ def company_prices(
 
     devices = sorted(pivot.values(), key=lambda x: x["normalized_name"])
     return {
-        "company": {"slug": slug, "name": company["name"], "grades": grades},
+        "company": {
+            "slug": slug,
+            "name": company["name"],
+            "grades": grades,
+            "color": company.get("color"),
+            "price_updated_at": get_company_last_updated(company["id"]),
+        },
         "total": len(devices),
         "devices": devices[offset : offset + limit],
     }

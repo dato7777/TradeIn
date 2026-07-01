@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
+import { CompanyPriceUpdatesList } from "@/components/PriceUpdatedAt";
 import { tierColumnStyle, tierGroupHeaderStyle } from "@/lib/tierStyles";
 import {
   formatPrice,
@@ -154,6 +155,11 @@ export function SummaryFlatView({ data }: Props) {
             הצעת מחיר הגבוה ביותר מודגשת — לפי בקשתו של רפי
             <span className="font-semibold text-amber-300">*</span>
           </p>
+          <CompanyPriceUpdatesList
+            companies={sortCompanySlugs(data.companies.map((c) => c.slug)).map(
+              (slug) => data.companies.find((c) => c.slug === slug)!
+            )}
+          />
         </div>
       </div>
       <TableScroll className="rounded-b-xl w-full -mx-px">

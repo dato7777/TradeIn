@@ -93,10 +93,17 @@ export interface Company {
   grades: GradeColumn[];
   color?: string;
   device_count: number;
+  price_updated_at?: string | null;
 }
 
 export interface CompanyPricesResponse {
-  company: { slug: string; name: string; grades: GradeColumn[] };
+  company: {
+    slug: string;
+    name: string;
+    grades: GradeColumn[];
+    color?: string;
+    price_updated_at?: string | null;
+  };
   total: number;
   devices: Array<{
     normalized_name: string;

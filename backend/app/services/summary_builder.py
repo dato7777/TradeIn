@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import Any
 
 from app.config import load_companies_config
-from app.database import fetch_all, get_all_companies, grade_columns_list
+from app.database import fetch_all, get_all_companies, get_all_companies_last_updated, grade_columns_list
 
 COMPANY_COLUMN_ORDER = ["ksp", "partner", "dynamica", "pelephone"]
 
@@ -18,6 +18,7 @@ def _sort_company_slugs(slugs: list[str]) -> list[str]:
 
 def build_summary(brand_filter: str | None = None, search: str | None = None) -> dict[str, Any]:
     companies = get_all_companies()
+    updated_map = get_all_companies_last_updated()
     config = load_companies_config()
     company_cfg = config.get("companies", {})
     tier_meta = config.get("summary_tiers", [])
@@ -120,6 +121,7 @@ def build_summary(brand_filter: str | None = None, search: str | None = None) ->
                 "name": c["name"],
                 "color": slug_to_color.get(c["slug"]),
                 "grades": slug_to_grades[c["slug"]],
+                "price_updated_at": updated_map.get(c["slug"]),
             }
             for c in companies
         ],
