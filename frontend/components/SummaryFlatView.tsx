@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
@@ -108,18 +109,38 @@ function tierCellStyle(tier: number, tierStart: boolean, index: number) {
   return tierColumnStyle(tier, tierStart, index);
 }
 
+/** Fixed device column width from the longest name in the current table. */
+function computeDeviceColumnWidth(names: string[], compact: boolean): number {
+  const floor = compact ? 148 : 200;
+  const longest = names.reduce((best, n) => (n.length > best.length ? n : best), "Device");
+  const charPx = compact ? 6.4 : 7.6;
+  const padding = compact ? 16 : 32;
+  return Math.max(floor, Math.ceil(longest.length * charPx + padding));
+}
+
 export function SummaryFlatView({ data }: Props) {
   const compact = useCompactTable();
   const columns = buildFlatColumns(data);
   const groups = tierGroups(columns);
-  const deviceColW = compact ? 148 : 220;
+  const visibleDevices = useMemo(
+    () =>
+      data.devices.filter((device) => {
+        const prices = buildPriceMap(device);
+        return columns.some((col) => prices.has(col.id));
+      }),
+    [data.devices, columns]
+  );
+
+  const deviceColW = useMemo(
+    () =>
+      computeDeviceColumnWidth(
+        visibleDevices.map((d) => d.normalized_name),
+        compact
+      ),
+    [visibleDevices, compact]
+  );
   const colW = compact ? 96 : 120;
   const tableWidth = deviceColW + columns.length * colW;
-
-  const visibleDevices = data.devices.filter((device) => {
-    const prices = buildPriceMap(device);
-    return columns.some((col) => prices.has(col.id));
-  });
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-card w-full min-w-0">
@@ -209,7 +230,7 @@ export function SummaryFlatView({ data }: Props) {
               return (
                 <tr key={device.normalized_name} className="hover:bg-surface/30">
                   <td
-                    className={`${stickyTdDeviceLtr} px-2 sm:px-4 py-2 font-medium text-white text-xs sm:text-sm truncate max-w-[45vw] sm:max-w-none border-b border-surface-border/50`}
+                    className={`${stickyTdDeviceLtr} px-2 sm:px-4 py-2 font-medium text-white text-xs sm:text-sm whitespace-nowrap border-b border-surface-border/50`}
                     title={device.normalized_name}
                   >
                     {device.normalized_name}
