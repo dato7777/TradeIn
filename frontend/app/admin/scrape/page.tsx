@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { apiFetch, type ScrapeJob } from "@/lib/api";
 
 const SCRAPER_COMPANIES = [
-  { slug: "ksp", name: "KSP", note: "Bulk JSON API — on Render needs KSP_SCRAPER_API_KEY (ScraperAPI)" },
+  { slug: "ksp", name: "KSP", note: "Public devices API (GET) — on Render set KSP_SCRAPER_API_KEY if blocked" },
   { slug: "pelephone", name: "Pelephone", note: "HTTP TradeSearch API — fast" },
 ];
 

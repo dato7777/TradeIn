@@ -16,14 +16,14 @@ from app.database import bulk_replace_company_prices, get_company_by_slug
 from app.services.normalizer import normalize_device_name
 
 KSP_TRADE_IN_URL = "https://ksp.co.il/kspTradeIn/"
-KSP_API_URL = "https://ksp.co.il/kspTradeIn/server/actions.php?action=get-new-data"
+KSP_API_URL = "https://ksp.co.il/snif/TradeIn/INNER_new/api/public/devices"
 KSP_USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 )
 SCRAPERAPI_ASYNC_JOBS_URL = "https://async.scraperapi.com/jobs"
 SCRAPERAPI_POLL_INTERVAL_SEC = 2.0
-SCRAPERAPI_POLL_MAX_ATTEMPTS = 90
+SCRAPERAPI_POLL_MAX_ATTEMPTS = 60
 ALLOWED_MANUFACTURERS = {"Apple", "Samsung"}
 GRADE_API_KEYS = ["A", "B", "C", "D"]
 GRADE_TO_KEY = {"A": "a", "B": "b", "C": "c", "D": "d"}
@@ -35,14 +35,24 @@ def resolve_ksp_proxy(https_proxy: str = "") -> str | None:
     return explicit or None
 
 
+def extract_ksp_catalog(data: dict[str, Any]) -> dict[str, Any]:
+    """Return manufacturer→models map from current or legacy KSP JSON."""
+    catalog = data.get("catalog")
+    if isinstance(catalog, dict) and catalog:
+        return catalog
+    legacy = data.get("data", {}).get("Phones")
+    if isinstance(legacy, dict) and legacy:
+        return legacy
+    return {}
+
+
 def build_scraper_api_job_payload(api_key: str, target_url: str = KSP_API_URL) -> dict[str, Any]:
-    """ScraperAPI async job — sync wrapper is GET-only; KSP requires POST + JSON body."""
+    """ScraperAPI async job for KSP public devices GET (used on cloud hosts when direct IP is blocked)."""
     return {
         "apiKey": api_key.strip(),
         "url": target_url,
-        "method": "POST",
+        "method": "GET",
         "headers": _ksp_api_headers(),
-        "body": "{}",
         "apiParams": {
             "country_code": "il",
             "keep_headers": True,
@@ -51,15 +61,13 @@ def build_scraper_api_job_payload(api_key: str, target_url: str = KSP_API_URL) -
 
 
 def _ksp_api_headers() -> dict[str, str]:
-    """Headers matching KSP trade-in XHR."""
+    """Headers matching KSP trade-in page fetch."""
     return {
         "User-Agent": KSP_USER_AGENT,
-        "Accept": "application/json, text/plain, */*",
+        "Accept": "*/*",
         "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Content-Type": "application/json",
         "Origin": "https://ksp.co.il",
         "Referer": KSP_TRADE_IN_URL,
-        "X-Requested-With": "XMLHttpRequest",
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
@@ -68,7 +76,7 @@ def _ksp_api_headers() -> dict[str, str]:
 
 def _ksp_client_kwargs(https_proxy: str | None) -> dict[str, Any]:
     kwargs: dict[str, Any] = {
-        "timeout": 180.0,
+        "timeout": 120.0,
         "follow_redirects": True,
         "verify": certifi.where(),
     }
@@ -131,7 +139,7 @@ async def fetch_ksp_raw() -> dict[str, Any]:
             if api_key:
                 data = await _fetch_ksp_via_scraper_api(client, api_key)
             else:
-                response = await client.post(KSP_API_URL, json={}, headers=_ksp_api_headers())
+                response = await client.get(KSP_API_URL, headers=_ksp_api_headers())
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPStatusError as exc:
@@ -141,24 +149,33 @@ async def fetch_ksp_raw() -> dict[str, Any]:
         except httpx.HTTPError as exc:
             raise RuntimeError(f"KSP fetch failed: {exc}") from exc
 
-    if not data.get("status"):
-        raise RuntimeError(data.get("error_msg") or "KSP API returned status=false")
+    if not extract_ksp_catalog(data):
+        legacy_ok = data.get("status") is False
+        if legacy_ok:
+            raise RuntimeError(data.get("error_msg") or "KSP API returned status=false")
+        raise RuntimeError("KSP response missing catalog data")
     return data
 
 
 def parse_ksp_prices(data: dict[str, Any]) -> list[dict[str, Any]]:
-    """Parse KSP JSON into price records using prices.*.full."""
-    phones = data.get("data", {}).get("Phones", {})
-    records: dict[tuple[str, str, str], dict] = {}
+    """Parse KSP JSON into price records using prices.A/B/C/D.full."""
+    catalog = extract_ksp_catalog(data)
+    records: dict[tuple[str, str], dict] = {}
 
-    for manufacturer, models in phones.items():
+    for manufacturer, models in catalog.items():
         if manufacturer not in ALLOWED_MANUFACTURERS:
             continue
+        if not isinstance(models, dict):
+            continue
         for model_name, storages in models.items():
+            if not isinstance(storages, dict):
+                continue
             for storage_key, entries in storages.items():
                 if not isinstance(entries, list):
                     continue
                 for entry in entries:
+                    if not isinstance(entry, dict):
+                        continue
                     row_id = int(entry.get("price_row_id") or entry.get("row_id") or 0)
                     raw_name = f"{entry.get('Model') or model_name} {entry.get('Storage') or storage_key}"
                     norm = normalize_device_name(raw_name, manufacturer=manufacturer)
@@ -195,6 +212,8 @@ async def run_ksp_scrape(job_id: Optional[UUID] = None) -> int:
         raise RuntimeError("KSP company not found in database")
     data = await fetch_ksp_raw()
     records = parse_ksp_prices(data)
+    if not records:
+        raise RuntimeError("KSP catalog parsed but no Apple/Samsung price records found")
     now = datetime.now(timezone.utc)
     bulk_replace_company_prices(
         company["id"],

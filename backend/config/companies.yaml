@@ -25,7 +25,7 @@ companies:
     slug: ksp
     source_type: scraper
     trade_in_url: "https://ksp.co.il/kspTradeIn/"
-    api_url: "https://ksp.co.il/kspTradeIn/server/actions.php?action=get-new-data"
+    api_url: "https://ksp.co.il/snif/TradeIn/INNER_new/api/public/devices"
     color: "#fff9c4"
     grades:
       - { key: a, label: "כחדש לחלוטין", summary_tier: 1, api_key: A }
