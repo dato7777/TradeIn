@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
+import { applyDynamicaVat } from "@/lib/dynamicaVat";
 import { tierColumnStyle, tierGroupHeaderStyle } from "@/lib/tierStyles";
 import {
   formatPrice,
@@ -22,6 +23,7 @@ import {
 
 interface Props {
   data: SummaryResponse;
+  includeVat?: boolean;
 }
 
 interface FlatColumn {
@@ -57,11 +59,12 @@ function buildFlatColumns(data: SummaryResponse): FlatColumn[] {
   return columns;
 }
 
-function buildPriceMap(device: SummaryResponse["devices"][0]) {
+function buildPriceMap(device: SummaryResponse["devices"][0], includeVat: boolean) {
   const map = new Map<string, number>();
   for (const tier of device.tiers) {
     for (const p of tier.prices) {
-      map.set(`${tier.tier}-${p.company}`, p.price);
+      const price = applyDynamicaVat(p.company, p.price, includeVat);
+      if (price != null) map.set(`${tier.tier}-${p.company}`, price);
     }
   }
   return map;
@@ -118,17 +121,17 @@ function computeDeviceColumnWidth(names: string[], compact: boolean): number {
   return Math.max(floor, Math.ceil(longest.length * charPx + padding));
 }
 
-export function SummaryFlatView({ data }: Props) {
+export function SummaryFlatView({ data, includeVat = false }: Props) {
   const compact = useCompactTable();
   const columns = buildFlatColumns(data);
   const groups = tierGroups(columns);
   const visibleDevices = useMemo(
     () =>
       data.devices.filter((device) => {
-        const prices = buildPriceMap(device);
+        const prices = buildPriceMap(device, includeVat);
         return columns.some((col) => prices.has(col.id));
       }),
-    [data.devices, columns]
+    [data.devices, columns, includeVat]
   );
 
   const deviceColW = useMemo(
@@ -225,7 +228,7 @@ export function SummaryFlatView({ data }: Props) {
           </thead>
           <tbody>
             {visibleDevices.map((device) => {
-              const priceMap = buildPriceMap(device);
+              const priceMap = buildPriceMap(device, includeVat);
               const bestColumnIds = tierHighlightsForRow(columns, priceMap);
               return (
                 <tr key={device.normalized_name} className="hover:bg-surface/30">

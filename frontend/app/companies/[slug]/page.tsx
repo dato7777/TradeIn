@@ -7,7 +7,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { DownloadExcelButton } from "@/components/ExcelActionButtons";
 import { PriceUpdatedAt } from "@/components/PriceUpdatedAt";
+import { DynamicaVatCheckbox } from "@/components/DynamicaVatCheckbox";
 import { apiDownload, apiFetch, type CompanyPricesResponse } from "@/lib/api";
+import { DYNAMICA_SLUG, useDynamicaVat } from "@/lib/dynamicaVat";
 
 export default function CompanyPage() {
   const params = useParams();
@@ -17,6 +19,8 @@ export default function CompanyPage() {
   const [data, setData] = useState<CompanyPricesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { includeVat, setIncludeVat } = useDynamicaVat();
+  const showVatToggle = slug === DYNAMICA_SLUG;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,10 +53,15 @@ export default function CompanyPage() {
         subtitle={data ? `${data.total} devices` : "Loading..."}
         center={<PriceUpdatedAt updatedAt={data?.company.price_updated_at} />}
         actions={
-          <DownloadExcelButton
-            className="w-full sm:w-auto"
-            onClick={() => apiDownload(`/api/export/company/${slug}`, `${slug}.xlsx`)}
-          />
+          <>
+            {showVatToggle && (
+              <DynamicaVatCheckbox checked={includeVat} onChange={setIncludeVat} />
+            )}
+            <DownloadExcelButton
+              className="w-full sm:w-auto"
+              onClick={() => apiDownload(`/api/export/company/${slug}`, `${slug}.xlsx`)}
+            />
+          </>
         }
       />
 
@@ -65,7 +74,9 @@ export default function CompanyPage() {
 
       {loading && <p className="text-slate-400 text-sm">Loading...</p>}
       {error && <p className="text-red-400 text-sm">{error}</p>}
-      {data && !loading && <CompanyPriceTable data={data} />}
+      {data && !loading && (
+        <CompanyPriceTable data={data} includeVat={showVatToggle && includeVat} />
+      )}
     </div>
   );
 }

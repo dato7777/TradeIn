@@ -5,9 +5,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { apiFetch, type ScrapeJob } from "@/lib/api";
 
 const SCRAPER_COMPANIES = [
-  { slug: "ksp", name: "KSP", note: "Public devices API (GET) — on Render set KSP_SCRAPER_API_KEY if blocked" },
-  { slug: "dynamica", name: "Dynamica", note: "Public Konimbo catalog GET — Excel upload still available" },
-  { slug: "pelephone", name: "Pelephone", note: "HTTP TradeSearch API — fast" },
+  { slug: "ksp", name: "KSP" },
+  { slug: "dynamica", name: "Dynamica" },
+  { slug: "pelephone", name: "Pelephone" },
 ];
 
 export default function AdminScrapePage() {
@@ -56,7 +56,7 @@ export default function AdminScrapePage() {
     <div className="w-full max-w-2xl min-w-0">
       <PageHeader
         title="Extract Data"
-        subtitle="Refresh KSP and Pelephone prices from their websites"
+        subtitle="Refresh prices from company websites"
       />
 
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
@@ -71,7 +71,6 @@ export default function AdminScrapePage() {
             >
               <div className="min-w-0">
                 <h2 className="font-semibold text-white">{co.name}</h2>
-                <p className="text-xs text-slate-500">{co.note}</p>
                 {job && (
                   <div className="mt-2 text-sm">
                     <span
@@ -101,7 +100,7 @@ export default function AdminScrapePage() {
                 disabled={loading === co.slug}
                 className="w-full sm:w-auto shrink-0 rounded-lg bg-accent px-4 py-2 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
               >
-                {loading === co.slug ? "Running..." : "Start scrape"}
+                {loading === co.slug ? "מושך..." : "משוך נתונים"}
               </button>
             </div>
           );

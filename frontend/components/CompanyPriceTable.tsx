@@ -3,6 +3,7 @@
 import { GradeBadge } from "@/components/GradeBadge";
 import type { CompanyPricesResponse } from "@/lib/api";
 import { companyColor } from "@/lib/companyOrder";
+import { applyDynamicaVat } from "@/lib/dynamicaVat";
 import {
   TableScroll,
   headerTh,
@@ -13,6 +14,7 @@ import {
 
 interface Props {
   data: CompanyPricesResponse;
+  includeVat?: boolean;
 }
 
 function formatPrice(n: number | undefined) {
@@ -20,9 +22,10 @@ function formatPrice(n: number | undefined) {
   return `₪${n.toLocaleString("he-IL")}`;
 }
 
-export function CompanyPriceTable({ data }: Props) {
+export function CompanyPriceTable({ data, includeVat = false }: Props) {
   const grades = data.company.grades;
   const accent = companyColor(data.company.slug);
+  const slug = data.company.slug;
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-card w-full min-w-0">
@@ -59,7 +62,7 @@ export function CompanyPriceTable({ data }: Props) {
                     key={g.key}
                     className="px-2 sm:px-3 py-2 text-center tabular-nums border-b border-surface-border/50"
                   >
-                    {formatPrice(device.grades[g.key])}
+                    {formatPrice(applyDynamicaVat(slug, device.grades[g.key], includeVat))}
                   </td>
                 ))}
               </tr>

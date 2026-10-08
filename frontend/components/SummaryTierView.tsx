@@ -3,6 +3,7 @@
 import { GradeBadge } from "@/components/GradeBadge";
 import type { SummaryResponse } from "@/lib/api";
 import { sortCompanySlugs } from "@/lib/companyOrder";
+import { applyDynamicaVat } from "@/lib/dynamicaVat";
 import {
   formatPrice,
   highestPriceCellClass,
@@ -19,9 +20,10 @@ import {
 
 interface Props {
   data: SummaryResponse;
+  includeVat?: boolean;
 }
 
-export function SummaryTierView({ data }: Props) {
+export function SummaryTierView({ data, includeVat = false }: Props) {
   const companyMap = Object.fromEntries(data.companies.map((c) => [c.slug, c]));
 
   return (
@@ -79,7 +81,10 @@ export function SummaryTierView({ data }: Props) {
                   const tierData = device.tiers.find((t) => t.tier === tier.tier);
                   const orderedSlugs = sortCompanySlugs(tier.companies);
                   const priceMap = Object.fromEntries(
-                    (tierData?.prices || []).map((p) => [p.company, p.price])
+                    (tierData?.prices || []).map((p) => [
+                      p.company,
+                      applyDynamicaVat(p.company, p.price, includeVat),
+                    ])
                   );
                   const hasAny = orderedSlugs.some((s) => priceMap[s] != null);
                   if (!hasAny) return null;

@@ -10,8 +10,10 @@ import {
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { SummaryFlatView } from "@/components/SummaryFlatView";
 import { SummaryTierView } from "@/components/SummaryTierView";
+import { DynamicaVatCheckbox } from "@/components/DynamicaVatCheckbox";
 import { sortCompanySlugs } from "@/lib/companyOrder";
 import { apiDownload, apiFetch, type SummaryResponse, type UserMe } from "@/lib/api";
+import { useDynamicaVat } from "@/lib/dynamicaVat";
 
 type SummaryViewMode = "tier" | "flat";
 
@@ -24,6 +26,7 @@ export default function SummaryPage() {
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [updatesOpen, setUpdatesOpen] = useState(false);
+  const { includeVat, setIncludeVat } = useDynamicaVat();
 
   const sortedCompanies = useMemo(
     () =>
@@ -85,6 +88,7 @@ export default function SummaryPage() {
           />
         </div>
         <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 flex-1 min-w-0">
+          <DynamicaVatCheckbox checked={includeVat} onChange={setIncludeVat} />
           <div className="inline-flex w-full sm:w-auto rounded-lg border border-surface-border bg-surface-card p-1 text-sm">
             <button
               type="button"
@@ -140,9 +144,9 @@ export default function SummaryPage() {
             <CompanyPriceUpdatesPanel companies={sortedCompanies} />
           )}
           {view === "flat" ? (
-            <SummaryFlatView data={data} />
+            <SummaryFlatView data={data} includeVat={includeVat} />
           ) : (
-            <SummaryTierView data={data} />
+            <SummaryTierView data={data} includeVat={includeVat} />
           )}
         </>
       )}
