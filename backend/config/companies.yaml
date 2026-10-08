@@ -3,7 +3,8 @@ companies:
     name: Dynamica
     slug: dynamica
     source_type: upload
-    trade_in_url: null
+    trade_in_url: "https://www.dynamica.co.il/pages/47738-tradein"
+    api_url: "https://sheets-api.konimbo.co.il/v1/trade-in-dynamica-b2OsUy/tradeinRe"
     color: "#fce4ec"
     grades:
       - { key: a, label: "A תקין", summary_tier: 1 }

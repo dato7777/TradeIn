@@ -6,6 +6,7 @@ import { apiFetch, type ScrapeJob } from "@/lib/api";
 
 const SCRAPER_COMPANIES = [
   { slug: "ksp", name: "KSP", note: "Public devices API (GET) — on Render set KSP_SCRAPER_API_KEY if blocked" },
+  { slug: "dynamica", name: "Dynamica", note: "Public Konimbo catalog GET — Excel upload still available" },
   { slug: "pelephone", name: "Pelephone", note: "HTTP TradeSearch API — fast" },
 ];
 

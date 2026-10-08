@@ -7,6 +7,7 @@ from typing import Optional
 from uuid import UUID
 
 from app.database import execute, execute_returning, fetch_one, get_company_by_slug
+from app.scrapers.companies.dynamica import run_dynamica_scrape
 from app.scrapers.companies.ksp import run_ksp_scrape
 
 
@@ -14,7 +15,8 @@ def create_job(company_slug: str, created_by: Optional[str] = None) -> dict:
     company = get_company_by_slug(company_slug)
     if not company:
         raise ValueError(f"Unknown company: {company_slug}")
-    if company["source_type"] != "scraper":
+    # Dynamica stays source_type=upload so Excel import still works; it also has a scraper.
+    if company["source_type"] != "scraper" and company["slug"] != "dynamica":
         raise ValueError(f"{company_slug} is not a scraper company")
     return execute_returning(
         """
@@ -57,6 +59,15 @@ async def run_job(job_id: UUID) -> None:
         slug = company["slug"]
         if slug == "ksp":
             count = await run_ksp_scrape(job_id=job_id)
+            update_job(
+                job_id,
+                status="completed",
+                progress_current=count,
+                progress_total=count,
+                finished_at=datetime.now(timezone.utc),
+            )
+        elif slug == "dynamica":
+            count = await run_dynamica_scrape(job_id=job_id)
             update_job(
                 job_id,
                 status="completed",

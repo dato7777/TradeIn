@@ -90,7 +90,7 @@ Open http://localhost:3000 and sign in.
 
 | Company | Source | Grade labels (Hebrew) |
 |---------|--------|----------------------|
-| Dynamica | Excel upload | A תקין, B תקין, C שבור/סדוק, D תקול |
+| Dynamica | Excel upload + scraper (API) | A תקין, B תקין, C שבור/סדוק, D תקול |
 | Partner | Excel upload | תקין |
 | KSP | Scraper (API) | כחדש לחלוטין, ללא שבר/סדק, שבר/סדק, תקול |
 | Pelephone | Scraper (HTTP API) | תקין, תקין חלקית, תקול |
@@ -102,7 +102,7 @@ The summary view groups prices by **condition tier** (1–4), not as a flat 12-c
 ## Admin features
 
 - **Upload** — Excel import for Dynamica and Partner (`/admin/upload`)
-- **Scrape** — Trigger KSP API scrape or Pelephone TradeSearch API scrape (`/admin/scrape`)
+- **Scrape** — Trigger KSP, Dynamica, or Pelephone scrapes (`/admin/scrape`)
 
 All authenticated users can view tables and download Excel exports.
 
@@ -148,4 +148,5 @@ Copy env templates from `.env.production.example` and `frontend/.env.local.examp
 
 - App Postgres (`:5433`) and Supabase Auth Postgres (`:54322`) are separate in local dev.
 - Pelephone uses `RepairServicesApi/TradeSearch` (embedded catalog + JSON POST). If it breaks, check `backend/app/scrapers/companies/pelephone.py`.
+- Dynamica uses Konimbo `tradeinRe` JSON GET (Excel upload still works). If it breaks, check `backend/app/scrapers/companies/dynamica.py`.
 - Do not commit `.env` or passwords.
