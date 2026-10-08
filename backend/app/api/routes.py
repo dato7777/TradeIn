@@ -124,9 +124,13 @@ def summary(
 
 
 @router.get("/export/company/{slug}")
-def export_company(slug: str, _user: dict = Depends(get_current_user)):
+def export_company(
+    slug: str,
+    dynamica_vat: bool = False,
+    _user: dict = Depends(get_current_user),
+):
     try:
-        data = export_company_excel(slug)
+        data = export_company_excel(slug, dynamica_vat=dynamica_vat)
     except ValueError as e:
         raise HTTPException(404, str(e)) from e
     return Response(
@@ -137,8 +141,11 @@ def export_company(slug: str, _user: dict = Depends(get_current_user)):
 
 
 @router.get("/export/summary")
-def export_summary(_user: dict = Depends(get_current_user)):
-    data = export_summary_excel()
+def export_summary(
+    dynamica_vat: bool = False,
+    _user: dict = Depends(get_current_user),
+):
+    data = export_summary_excel(dynamica_vat=dynamica_vat)
     return Response(
         content=data,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

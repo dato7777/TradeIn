@@ -13,7 +13,9 @@ export function applyDynamicaVat(
 ): number | undefined {
   if (price == null) return undefined;
   if (includeVat && slug === DYNAMICA_SLUG) {
-    return Math.round(price * (1 + DYNAMICA_VAT_RATE));
+    // Catalog stores VAT-off integers (original / 1.18, rounded).
+    // ×1.18 can yield 599 / 1501; nearest 10 restores 600 / 1500 / 1550.
+    return Math.round((price * (1 + DYNAMICA_VAT_RATE)) / 10) * 10;
   }
   return price;
 }

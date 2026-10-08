@@ -17,7 +17,7 @@ export function DynamicaVatCheckbox({ checked, onChange }: Props) {
         onChange={(e) => onChange(e.target.checked)}
         className="h-4 w-4 accent-sky-500"
       />
-      <span>מע״מ 18%</span>
+      <span>דינמיקה מע״מ 18%</span>
     </label>
   );
 }

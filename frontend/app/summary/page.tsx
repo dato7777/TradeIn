@@ -115,7 +115,12 @@ export default function SummaryPage() {
           </div>
           <ExcelActionButtons
             showUpload={isAdmin}
-            onDownload={() => apiDownload("/api/export/summary", "summary.xlsx")}
+            onDownload={() =>
+              apiDownload(
+                `/api/export/summary${includeVat ? "?dynamica_vat=true" : ""}`,
+                "summary.xlsx"
+              )
+            }
           />
         </div>
       </div>

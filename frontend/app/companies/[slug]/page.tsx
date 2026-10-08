@@ -59,7 +59,14 @@ export default function CompanyPage() {
             )}
             <DownloadExcelButton
               className="w-full sm:w-auto"
-              onClick={() => apiDownload(`/api/export/company/${slug}`, `${slug}.xlsx`)}
+              onClick={() =>
+                apiDownload(
+                  `/api/export/company/${slug}${
+                    showVatToggle && includeVat ? "?dynamica_vat=true" : ""
+                  }`,
+                  `${slug}.xlsx`
+                )
+              }
             />
           </>
         }

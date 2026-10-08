@@ -12,6 +12,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from app.database import fetch_all, get_company_by_slug, grade_columns_list, dedupe_price_rows
+from app.services.dynamica_vat import maybe_apply_dynamica_vat
 from app.services.normalizer import normalize_device_name
 from app.services.summary_builder import build_summary
 
@@ -273,7 +274,7 @@ def _header_fill(hex_color: str) -> PatternFill:
     return PatternFill(start_color=hex_color.replace("#", ""), end_color=hex_color.replace("#", ""), fill_type="solid")
 
 
-def export_company_excel(slug: str) -> bytes:
+def export_company_excel(slug: str, dynamica_vat: bool = False) -> bytes:
     company = get_company_by_slug(slug)
     if not company:
         raise ValueError(f"Company not found: {slug}")
@@ -290,7 +291,9 @@ def export_company_excel(slug: str) -> bytes:
     )
     pivot: dict[str, dict[str, int]] = {}
     for r in rows:
-        pivot.setdefault(r["normalized_name"], {})[r["grade"]] = r["price"]
+        price = maybe_apply_dynamica_vat(slug, r["price"], dynamica_vat)
+        if price is not None:
+            pivot.setdefault(r["normalized_name"], {})[r["grade"]] = price
 
     wb = Workbook()
     ws = wb.active
@@ -316,7 +319,7 @@ def export_company_excel(slug: str) -> bytes:
     return buf.getvalue()
 
 
-def export_summary_excel() -> bytes:
+def export_summary_excel(dynamica_vat: bool = False) -> bytes:
     summary = build_summary()
     wb = Workbook()
     ws = wb.active
@@ -346,7 +349,9 @@ def export_summary_excel() -> bytes:
         price_map: dict[tuple[str, str], int] = {}
         for tier_data in device["tiers"]:
             for p in tier_data["prices"]:
-                price_map[(p["company"], p["grade_key"])] = p["price"]
+                price = maybe_apply_dynamica_vat(p["company"], p["price"], dynamica_vat)
+                if price is not None:
+                    price_map[(p["company"], p["grade_key"])] = price
         row = [device["normalized_name"]]
         for _, cols in tier_blocks:
             for slug, _, g in cols:
