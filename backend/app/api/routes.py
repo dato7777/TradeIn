@@ -37,7 +37,7 @@ def auth_me(user: dict = Depends(get_current_user)):
 
 
 @router.get("/companies")
-def list_companies(_user: dict = Depends(get_current_user)):
+def list_companies(_user: dict = Depends(require_admin)):
     companies = get_all_companies()
     updated_map = get_all_companies_last_updated()
     result = []
@@ -67,7 +67,7 @@ def company_prices(
     brand: str | None = None,
     limit: int = 100,
     offset: int = 0,
-    _user: dict = Depends(get_current_user),
+    _user: dict = Depends(require_admin),
 ):
     company = get_company_by_slug(slug)
     if not company:
@@ -118,7 +118,7 @@ def company_prices(
 def summary(
     search: str | None = None,
     brand: str | None = None,
-    _user: dict = Depends(get_current_user),
+    _user: dict = Depends(require_admin),
 ):
     return build_summary(brand_filter=brand, search=search)
 
@@ -127,7 +127,7 @@ def summary(
 def export_company(
     slug: str,
     dynamica_vat: bool = False,
-    _user: dict = Depends(get_current_user),
+    _user: dict = Depends(require_admin),
 ):
     try:
         data = export_company_excel(slug, dynamica_vat=dynamica_vat)
@@ -143,7 +143,7 @@ def export_company(
 @router.get("/export/summary")
 def export_summary(
     dynamica_vat: bool = False,
-    _user: dict = Depends(get_current_user),
+    _user: dict = Depends(require_admin),
 ):
     data = export_summary_excel(dynamica_vat=dynamica_vat)
     return Response(

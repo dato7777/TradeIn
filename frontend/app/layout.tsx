@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,9 +14,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="overflow-x-hidden">
-        <AppShell>{children}</AppShell>
-      </body>
+      <body className="overflow-x-hidden">{children}</body>
     </html>
   );
 }

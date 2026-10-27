@@ -7,15 +7,17 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { createClient } from "@/lib/supabase/client";
 import { apiFetch, type UserMe } from "@/lib/api";
 
+const LOGIN_PATH = "/datadmin/login";
+
 const NAV = [
-  { href: "/summary", label: "Summary" },
-  { href: "/companies/dynamica", label: "Dynamica" },
-  { href: "/companies/partner", label: "Partner" },
-  { href: "/companies/ksp", label: "KSP" },
-  { href: "/companies/pelephone", label: "Pelephone" },
+  { href: "/datadmin", label: "Summary" },
+  { href: "/datadmin/companies/dynamica", label: "Dynamica" },
+  { href: "/datadmin/companies/partner", label: "Partner" },
+  { href: "/datadmin/companies/ksp", label: "KSP" },
+  { href: "/datadmin/companies/pelephone", label: "Pelephone" },
 ];
 
-const EXTRACT_DATA_HREF = "/admin/scrape";
+const EXTRACT_DATA_HREF = "/datadmin/scrape";
 
 function navLinkClass(active: boolean, mobile = false) {
   return `${
@@ -43,13 +45,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const loadUser = useCallback(async () => {
-    if (pathname === "/login") return;
+    if (pathname === LOGIN_PATH) return;
     try {
       const me = await apiFetch<UserMe>("/api/auth/me");
+      if (me.role !== "admin") {
+        setUser(null);
+        router.replace("/");
+        return;
+      }
       setUser(me);
     } catch {
       setUser(null);
-      router.replace("/login");
+      router.replace(LOGIN_PATH);
     }
   }, [pathname, router]);
 
@@ -72,13 +79,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     await supabase.auth.signOut();
     setUser(null);
-    router.replace("/login");
+    router.replace(LOGIN_PATH);
   }
 
-  if (pathname === "/login") return <>{children}</>;
+  if (pathname === LOGIN_PATH) return <>{children}</>;
 
   const widePage =
-    pathname === "/summary" || pathname.startsWith("/companies/");
+    pathname === "/datadmin" || pathname.startsWith("/datadmin/companies/");
 
   const adminLinks =
     user?.role === "admin" ? [{ href: EXTRACT_DATA_HREF, label: "Extract Data" }] : [];
@@ -86,6 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const allLinks = [...NAV, ...adminLinks];
 
   function isActive(href: string) {
+    if (href === "/datadmin") return pathname === "/datadmin";
     return pathname === href || pathname.startsWith(href + "/");
   }
 

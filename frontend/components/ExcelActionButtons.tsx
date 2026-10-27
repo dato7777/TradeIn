@@ -23,7 +23,7 @@ export function ExcelActionButtons({ onDownload, showUpload = false }: Props) {
   return (
     <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 sm:gap-3">
       {showUpload && (
-        <Link href="/admin/upload" className={`w-full sm:w-auto ${uploadClass}`}>
+        <Link href="/datadmin/upload" className={`w-full sm:w-auto ${uploadClass}`}>
           Upload Excel
         </Link>
       )}

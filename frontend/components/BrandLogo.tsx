@@ -8,7 +8,7 @@ interface Props {
   className?: string;
 }
 
-export function BrandLogo({ href = "/summary", className = "" }: Props) {
+export function BrandLogo({ href = "/datadmin", className = "" }: Props) {
   const logo = (
     <span
       className={`${brandFont.className} inline-flex items-baseline gap-1.5 select-none ${className}`}
