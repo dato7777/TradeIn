@@ -26,7 +26,7 @@ defaults:
 
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       NEXT_PUBLIC_SITE_URL: https://ci.example.invalid
       NEXT_PUBLIC_SUPABASE_URL: https://ci.supabase.invalid
@@ -39,6 +39,7 @@ jobs:
           node-version-file: web/.nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - run: node -v && npm -v && ls -la
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
@@ -49,7 +50,7 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
 
   secrets-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: .

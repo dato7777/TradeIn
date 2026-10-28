@@ -1,0 +1,12 @@
+# Allowlist for documented local-dev placeholders only.
+# Real production keys must still fail the scan.
+
+[allowlist]
+description = "Documented local-dev placeholders, not production secrets"
+regexTarget = "match"
+regexes = [
+  '''super-secret-jwt-token-with-at-least-32-characters-long''',
+  '''postgresql://tradein:tradein@localhost:5433/tradein''',
+  '''tomerbardao@tradein\.local''',
+  '''sb_publishable_(ci_placeholder|local_placeholder|test)''',
+]
