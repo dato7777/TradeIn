@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ModelCard } from "@/components/public/ModelCard";
 import { ModelSearch } from "@/components/public/ModelSearch";
 import { brandLabel, catalogCopy } from "@/lib/catalogCopy";
+import { publicModelName } from "@/lib/public/modelName";
 import { publicCopy, type PublicLocale } from "@/lib/publicCopy";
 import { listBrands, listModels } from "@/lib/public/catalog";
 import { brandPath } from "@/lib/public/paths";
@@ -60,7 +61,7 @@ export async function PublicHome({ locale }: { locale: PublicLocale }) {
                 locale={locale}
                 brand={model.brand}
                 slug={model.model_slug}
-                name={locale === "he" ? model.display_name_he : model.display_name_en}
+                name={publicModelName(locale, model.display_name_he, model.display_name_en)}
               />
             ))}
           </ul>

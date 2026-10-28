@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { catalogCopy } from "@/lib/catalogCopy";
+import { publicModelName } from "@/lib/public/modelName";
 import { modelPath } from "@/lib/public/paths";
 import { brandSchema, modelSlugSchema, type SearchHit } from "@/lib/public/schemas";
 import type { PublicLocale } from "@/lib/publicCopy";
@@ -85,7 +86,8 @@ export function ModelSearch({ locale }: { locale: PublicLocale }) {
         value={query}
         placeholder={t.searchPlaceholder}
         autoComplete="off"
-        className={`h-12 w-full rounded-[10px] border border-pub-border bg-white px-4 text-base text-pub-fg shadow-sm ${focus}`}
+        dir="auto"
+        className={`h-12 w-full rounded-[10px] border border-pub-border bg-white px-4 text-base text-pub-fg shadow-sm [unicode-bidi:plaintext] ${focus}`}
         onChange={(event) => setQuery(event.target.value)}
         onKeyDown={(event) => {
           if (!open || items.length === 0) return;
@@ -114,7 +116,7 @@ export function ModelSearch({ locale }: { locale: PublicLocale }) {
           className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-pub-border bg-white shadow-sm"
         >
           {items.map((hit, index) => {
-            const name = locale === "he" ? hit.display_name_he : hit.display_name_en;
+            const name = publicModelName(locale, hit.display_name_he, hit.display_name_en);
             return (
               <li key={`${hit.brand}-${hit.model_slug}`} role="presentation">
                 <button
@@ -122,7 +124,8 @@ export function ModelSearch({ locale }: { locale: PublicLocale }) {
                   type="button"
                   role="option"
                   aria-selected={index === active}
-                  className={`flex min-h-11 w-full items-center px-4 text-start text-base ${focus} ${
+                  dir="auto"
+                  className={`flex min-h-11 w-full items-center px-4 text-start text-base [unicode-bidi:plaintext] ${focus} ${
                     index === active ? "bg-pub-surface" : "bg-white"
                   }`}
                   onMouseEnter={() => setActive(index)}

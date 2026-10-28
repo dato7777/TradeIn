@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/public/Breadcrumbs";
 import { ModelCard } from "@/components/public/ModelCard";
 import { brandLabel, catalogCopy } from "@/lib/catalogCopy";
+import { publicModelName } from "@/lib/public/modelName";
 import { listModels } from "@/lib/public/catalog";
 import { brandPath } from "@/lib/public/paths";
 import { brandSchema } from "@/lib/public/schemas";
@@ -28,7 +29,7 @@ export async function BrandView({ locale, brand }: { locale: PublicLocale; brand
             locale={locale}
             brand={model.brand}
             slug={model.model_slug}
-            name={locale === "he" ? model.display_name_he : model.display_name_en}
+            name={publicModelName(locale, model.display_name_he, model.display_name_en)}
           />
         ))}
       </ul>

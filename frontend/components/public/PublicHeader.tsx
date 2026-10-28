@@ -41,11 +41,11 @@ export function PublicHeader({ locale }: { locale: PublicLocale }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-pub-border bg-pub-bg/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="sticky top-0 z-30 w-full min-w-0 max-w-full overflow-x-clip border-b border-pub-border bg-pub-bg/95 backdrop-blur">
+      <div className="mx-auto flex h-16 w-full min-w-0 max-w-[1200px] items-center justify-between gap-2 px-4 sm:px-6">
         <Logo locale={locale} />
 
-        <nav aria-label={t.mainNav} className="hidden lg:block">
+        <nav aria-label={t.mainNav} className="hidden min-w-0 lg:block">
           <ul className="flex items-center gap-1">
             {t.nav.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);

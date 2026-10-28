@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollToTopOffer } from "@/components/public/ScrollToTopOffer";
 import { catalogCopy, httpsUrl, methodList } from "@/lib/catalogCopy";
 import { formatIls, formatStorage, formatUpdatedAgo } from "@/lib/public/format";
 import { localePath } from "@/lib/public/paths";
@@ -51,8 +52,9 @@ export function OfferList({
       <h2 id="offers-title" className="text-2xl font-bold">
         {t.offersTitle}
       </h2>
+      <ScrollToTopOffer />
       <ol className="flex flex-col gap-4">
-        {offers.map((offer) => {
+        {offers.map((offer, index) => {
           const name = locale === "he" ? offer.company_name_he : offer.company_name_en;
           const payoutTime = locale === "he" ? offer.payout_time_he : offer.payout_time_en;
           const policy = locale === "he" ? offer.policy_summary_he : offer.policy_summary_en;
@@ -61,7 +63,8 @@ export function OfferList({
           return (
             <li
               key={offer.offer_ref}
-              className="rounded-xl border border-pub-border bg-white p-5 shadow-sm"
+              id={index === 0 ? "top-offer" : undefined}
+              className={`scroll-mt-24 rounded-xl border border-pub-border bg-white p-5 shadow-sm`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h3 className="text-xl font-bold">{name}</h3>
@@ -74,6 +77,9 @@ export function OfferList({
               <p className="mt-3 text-4xl font-bold tracking-tight text-pub-fg">
                 {formatIls(offer.price, locale)}
               </p>
+              {index === 0 && offers.length > 1 ? (
+                <p className="mt-3 text-sm font-semibold text-pub-primary">{t.moreBelow}</p>
+              ) : null}
               <p className="mt-2 text-sm text-pub-muted">{t.updated(formatUpdatedAgo(offer.last_updated_at, locale))}</p>
               {offer.is_stale ? <p className="mt-1 text-sm font-medium text-pub-warning">{t.stale}</p> : null}
               <dl className="mt-4 grid gap-2 text-sm">

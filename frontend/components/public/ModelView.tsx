@@ -4,6 +4,7 @@ import { Breadcrumbs } from "@/components/public/Breadcrumbs";
 import { OfferList, suggestionLabel } from "@/components/public/OfferList";
 import { OfferPicker } from "@/components/public/OfferPicker";
 import { brandLabel, catalogCopy } from "@/lib/catalogCopy";
+import { publicModelName } from "@/lib/public/modelName";
 import { getModel, getOffers, listConditionGrades } from "@/lib/public/catalog";
 import { formatStorage, siteOrigin } from "@/lib/public/format";
 import { brandPath, modelPath } from "@/lib/public/paths";
@@ -44,7 +45,7 @@ export async function ModelView({
     : [];
 
   const t = catalogCopy[locale];
-  const name = locale === "he" ? model.display_name_he : model.display_name_en;
+  const name = publicModelName(locale, model.display_name_he, model.display_name_en);
   const brandName = brandLabel(locale, model.brand);
   const action = modelPath(locale, model.brand, model.model_slug);
   const suggestions =
@@ -128,7 +129,7 @@ export async function modelMetadata(
   if (!parsedBrand.success || !model || model.brand !== parsedBrand.data) {
     return { title: site, robots: { index: false, follow: false } };
   }
-  const name = locale === "he" ? model.display_name_he : model.display_name_en;
+  const name = publicModelName(locale, model.display_name_he, model.display_name_en);
   const origin = siteOrigin();
   const he = `${origin}/sell/${model.brand}/${model.model_slug}`;
   const en = `${origin}/en/sell/${model.brand}/${model.model_slug}`;

@@ -21,7 +21,7 @@ export function PublicShell({
     <div
       lang={locale}
       dir={locale === "he" ? "rtl" : "ltr"}
-      className={`${heebo.className} flex min-h-dvh flex-col bg-pub-bg text-pub-fg antialiased`}
+      className={`${heebo.className} flex min-h-dvh w-full min-w-0 max-w-full flex-col overflow-x-clip bg-pub-bg text-pub-fg antialiased`}
     >
       <a
         href="#main"
@@ -30,7 +30,7 @@ export function PublicShell({
         {t.skip}
       </a>
       <PublicHeader locale={locale} />
-      <main id="main" tabIndex={-1} className="flex flex-1 flex-col focus:outline-none">
+      <main id="main" tabIndex={-1} className="flex w-full min-w-0 flex-1 flex-col focus:outline-none">
         {children}
       </main>
       <PublicFooter locale={locale} />

@@ -2,6 +2,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { normalizeSearchQuery } from "./modelName";
 import {
   brandSchema,
   companyRow,
@@ -142,7 +143,7 @@ export function listConditionPolicies() {
 }
 
 export async function searchModels(query: string): Promise<SearchHit[]> {
-  const parsed = searchQuerySchema.safeParse(query);
+  const parsed = searchQuerySchema.safeParse(normalizeSearchQuery(query));
   if (!parsed.success) return [];
   const rows = await searchModelsCached(parsed.data);
   return rows.map((row) => searchHit.parse(row));

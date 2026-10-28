@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(24);
+select plan(26);
 
 -- Fixtures ------------------------------------------------------------------
 insert into public.companies (id, slug, name, source_type, grade_columns) values
@@ -98,6 +98,12 @@ select is(
 select ok(
   exists (select 1 from public_site.search_models('אייפון 15') where model_slug = 'iphone-15-pro'),
   'Hebrew search finds iPhone models');
+select is(
+  (select display_name_he from public_site.get_model('iphone-15-pro')),
+  'אייפון 15 פרו', 'Hebrew display name');
+select ok(
+  exists (select 1 from public_site.search_models('15 פרו') where model_slug = 'iphone-15-pro'),
+  'Hebrew Pro finds the model');
 select is_empty(
   $$select 1 from public_site.search_models('15_pro')$$,
   'LIKE wildcards in search are treated literally');

@@ -35,7 +35,7 @@ const delivery = {
 export const catalogCopy = {
   he: {
     searchLabel: "חיפוש דגם",
-    searchPlaceholder: "לדוגמה: iPhone 15 או Galaxy S24",
+    searchPlaceholder: "לדוגמה: אייפון 13 פרו או גלקסי S24",
     searchAria: "חיפוש דגם",
     searchResults: "תוצאות חיפוש",
     searchEmpty: "לא נמצאו דגמים",
@@ -53,6 +53,7 @@ export const catalogCopy = {
     pendingNote: "ההצעות שמוצגות שייכות לבחירה שאושרה. לחצו שוב כדי לעדכן.",
     offersTitle: "הצעות, מהמחיר הגבוה לנמוך",
     bestPrice: "המחיר הגבוה",
+    moreBelow: "גללו למטה — יש עוד הצעות",
     stale: "ייתכן שהמחיר לא מעודכן",
     updated: (when: string) => `עודכן ${when}`,
     noOffers: "אין הצעות לשילוב הזה",
@@ -133,6 +134,7 @@ export const catalogCopy = {
     pendingNote: "The offers below match the confirmed choice. Press the button again to update them.",
     offersTitle: "Offers, highest price first",
     bestPrice: "Highest price",
+    moreBelow: "Scroll down — there are more offers",
     stale: "This price may be out of date",
     updated: (when: string) => `Updated ${when}`,
     noOffers: "No offers for this combination",
