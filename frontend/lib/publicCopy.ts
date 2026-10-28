@@ -15,7 +15,7 @@ export const publicCopy = {
     title: "כמה שווה הטלפון שלכם?",
     subtitle:
       "בוחרים דגם, נפח אחסון ומצב — ורואים מי משלם הכי הרבה, מהמחיר הגבוה לנמוך.",
-    badge: "החיפוש וההשוואה יעלו בקרוב.",
+    badge: "המחיר מופיע רק אחרי בחירת נפח ומצב.",
     stepsTitle: "שלושה צעדים פשוטים",
     steps: [
       { title: "בוחרים דגם", body: "אייפון או סמסונג, והדגם המדויק." },
@@ -59,7 +59,7 @@ export const publicCopy = {
     title: "What is your phone worth?",
     subtitle:
       "Pick the model, storage and condition, and see who pays the most, from highest to lowest.",
-    badge: "Search and comparison are coming soon.",
+    badge: "The price appears only after you pick storage and condition.",
     stepsTitle: "Three simple steps",
     steps: [
       { title: "Pick your model", body: "iPhone or Samsung, and the exact model." },

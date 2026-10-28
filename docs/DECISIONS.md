@@ -50,3 +50,14 @@ Each entry: decision, alternatives considered, reason. Newest phase last.
 | P10 | Data-access layer is `src/server/data/catalog.ts` only. Components and pages cannot import `@supabase/*`. Responses are parsed with Zod. | Query from pages. | Spec §4 / §5. |
 | P11 | Grade descriptions are draft `TODO(content)` Hebrew/English texts in `catalog.condition_grades`. | Wait for approved copy. | Needed to exercise the read model; easy to UPDATE. |
 | P12 | Migrations 011 (public accounts) and 013 (conversions) stay for Phase 5 / 6. Outbound click logging (011-equivalent) stays for Phase 4. | Build them now. | Spec phases. |
+
+## Phase 3 — Catalog UX
+
+| # | Decision | Alternatives | Reason |
+|---|---|---|---|
+| U1 | Catalog pages ship in `frontend/` (the live Vercel app), reading only `public_site` RPCs. `web/` is unchanged. | Build the UI only in `web/`. | Decision D1: `resparts.vercel.app` is this Next.js app. |
+| U2 | Offers render only after the user submits storage and condition (`?storage=&condition=`). Cards and search results show names, not prices or company names. | Show "up to ₪X" on cards (spec §7). | Decision D3. |
+| U3 | The "go to offer" link is not built in this phase. Offer cards link to the company profile and say the company visit comes next. No destination URL is sent to the browser. | Link straight to the company trade-in URL. | Outbound redirect, allowlist and click logging are Phase 4. |
+| U4 | Catalog reads are cached for 5 minutes under the tag `catalog`. The root layout reads the locale header, so pages render per request and `<html lang dir>` follows Hebrew or English. | Static ISR of the HTML. | Locale has to be on the document element, which the admin and the public site share. |
+| U5 | `/companies/[slug]` is the public company page. The old redirect to `/datadmin/companies/[slug]` is removed. Admin stays at `/datadmin/companies/[slug]`. | Keep the redirect and put public companies on another path. | The public menu already uses `/companies`. Admin navigation does not use the old path. |
+| U6 | Search is `GET /api/search`, validated with Zod, and limited to 30 requests a minute per instance. | Skip the limit until Upstash exists. | The spec rate-limits search. A shared store can replace the in-memory limit later. |
