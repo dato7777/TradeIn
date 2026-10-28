@@ -1,0 +1,58 @@
+{
+  "site": {
+    "name": "Trade-in Compare",
+    "tagline": "Compare trade-in prices for your phone in one place"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "mainNav": "Main navigation",
+    "footerNav": "Footer navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menuTitle": "Menu",
+    "home": "Home"
+  },
+  "nav": {
+    "sellApple": "Sell iPhone",
+    "sellSamsung": "Sell Samsung",
+    "howItWorks": "How it works",
+    "conditionGuide": "Condition guide",
+    "companies": "Companies"
+  },
+  "footer": {
+    "about": "About",
+    "methodology": "How we rank",
+    "faq": "FAQ",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "affiliateDisclosure": "Affiliate disclosure",
+    "contact": "Contact",
+    "disclaimer": "Prices are indicative. The final price is set by the company after inspecting the device.",
+    "rights": "All rights reserved."
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "עברית",
+    "switchToLabel": "עבור לעברית"
+  },
+  "home": {
+    "title": "What is your phone worth?",
+    "subtitle": "Pick the model, storage and condition, and see who pays the most, from highest to lowest.",
+    "comingSoon": "Search and comparison are coming soon.",
+    "stepsTitle": "Three simple steps",
+    "step1Title": "Pick your model",
+    "step1Body": "iPhone or Samsung, and the exact model.",
+    "step2Title": "Pick storage and condition",
+    "step2Body": "Storage size and device condition (A to D).",
+    "step3Title": "Compare and go to the offer",
+    "step3Body": "Offers are sorted from highest to lowest price."
+  },
+  "errors": {
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The link may be wrong or the page may have been removed.",
+    "backHome": "Back to home",
+    "errorTitle": "Something went wrong",
+    "errorBody": "A temporary error occurred. Please try again in a moment.",
+    "retry": "Try again"
+  }
+}

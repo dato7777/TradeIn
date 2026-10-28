@@ -1,0 +1,16 @@
+---
+description: Non-negotiable rules for the trade-in comparison public site
+alwaysApply: true
+---
+- Never touch the admin app (Next.js + FastAPI + Postgres) or scrapers. The public site is a separate app sharing only the database via the read model. Only additive, versioned SQL migrations; test on a branch first.
+- Never use FORCE ROW LEVEL SECURITY on existing admin-owned tables. Public sign-ups must have zero admin access (shared auth.users pool risk).
+- Never disable RLS, never use USING (true) on writable tables, never use user_metadata for authorization.
+- Public site reads only through the public read model (RPC/views). Never query raw/admin tables from public code.
+- The Supabase secret key is server-only, used in exactly one module (click logging). Never NEXT_PUBLIC_, never logged.
+- On the server use supabase.auth.getClaims() or getUser(); never trust getSession().
+- Validate every input with Zod. Never accept a destination URL or price from the client.
+- Outbound links: rel="sponsored nofollow noopener" (never noreferrer); redirect only to DB-stored, allowlisted https hosts; UTM + opaque click ID; no PII in URLs.
+- No dangerouslySetInnerHTML. Strict CSP with nonces. Rate limit /go, auth, search, revalidate.
+- Prices are integer ILS. Use logical CSS properties; support he (RTL) and en (LTR).
+- Mobile-first, WCAG 2.2 AA. No secrets in the repo. Work phase by phase and stop for approval.
+- Reference spec: docs/cursor-prompt-tradein-site.md. Discovery findings: docs/DISCOVERY.md.
