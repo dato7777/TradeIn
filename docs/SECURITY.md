@@ -10,8 +10,8 @@ Scope: the public site (`web/`) and the database objects it uses. The admin (`fr
 |---|---|---|---|
 | `public` | yes (legacy) | admin/scraper tables | nothing (RLS on, no policies, all grants revoked — migration 002) |
 | `catalog` | no | side tables + internal helper functions | nothing (no schema usage) |
-| `read_model` | no | `SECURITY DEFINER` functions, owner `postgres`, `search_path = ''` | execute these 8 functions only |
-| `public_site` | yes | `SECURITY INVOKER` wrappers returning `read_model` row types | execute these 8 functions only |
+| `read_model` | no | `SECURITY DEFINER` functions, owner `postgres`, `search_path = ''` | `anon` / `authenticated`: the 8 read functions only. `service_role`: `resolve_offer` and `record_click` only |
+| `public_site` | yes | `SECURITY INVOKER` wrappers | same split. The two click wrappers are not granted to `anon` or `authenticated` |
 
 Why:
 - **Views** would either run with the owner's rights (`security_definer_view`, a Security Advisor error) or need `SELECT` grants and policies for `anon` on base tables, which the spec forbids.
@@ -25,9 +25,9 @@ Proven by `supabase/tests/001_privileges.test.sql` and `002_read_model.test.sql`
 | Role | Used by | Capabilities |
 |---|---|---|
 | `postgres` | FastAPI admin + scrapers (direct connection), SQL editor | Owner of all tables; `BYPASSRLS`. Unchanged. |
-| `anon` | Public site (publishable key, server-side, no session) | Execute `public_site.*` read functions. No table access anywhere. |
+| `anon` | Public site (publishable key, server-side, no session) | Execute the 8 `public_site` read functions. No table access. Cannot resolve a destination or write a click. |
 | `authenticated` | Signed-in users (Phase 5) | Same as `anon` today. Own-data policies arrive in Phase 5. |
-| `service_role` | Secret key, click logging only (Phase 4) | Bypasses RLS. Will be used in exactly one server-only module. |
+| `service_role` | Secret key, click logging only (Phase 4) | Calls `resolve_offer` and `record_click` from one server-only module. Bypasses RLS, but has no grant on `catalog.outbound_clicks`; the definer function writes the row. |
 
 ## Secrets
 

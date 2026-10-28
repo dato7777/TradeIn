@@ -61,3 +61,13 @@ Each entry: decision, alternatives considered, reason. Newest phase last.
 | U4 | Catalog reads are cached for 5 minutes under the tag `catalog`. The root layout reads the locale header, so pages render per request and `<html lang dir>` follows Hebrew or English. | Static ISR of the HTML. | Locale has to be on the document element, which the admin and the public site share. |
 | U5 | `/companies/[slug]` is the public company page. The old redirect to `/datadmin/companies/[slug]` is removed. Admin stays at `/datadmin/companies/[slug]`. | Keep the redirect and put public companies on another path. | The public menu already uses `/companies`. Admin navigation does not use the old path. |
 | U6 | Search is `GET /api/search`, validated with Zod, and limited to 30 requests a minute per instance. | Skip the limit until Upstash exists. | The spec rate-limits search. A shared store can replace the in-memory limit later. |
+
+## Phase 4 — Outbound redirect
+
+| # | Decision | Alternatives | Reason |
+|---|---|---|---|
+| O1 | `/go/[offerRef]` lives in `frontend/`. The offer card links only to that path. The destination URL and the price are loaded server-side. | Put the company URL on the card. | A direct link would skip the click log. The client never sends a destination or a price. |
+| O2 | `resolve_offer` and `record_click` are granted only to `service_role`. The secret key is read in `frontend/lib/server/clicks.ts` and nowhere else. | Expose the destination through the publishable key. | The publishable key must not be able to read `destination_url` or write clicks. |
+| O3 | If the click insert fails, the visitor is still redirected. If the offer cannot be resolved, or the host is not allowlisted, the response is a 404 or 503 and there is no redirect. | Fail closed on a log error. | Spec §8: never block the user because logging failed, and never redirect to an untrusted host. |
+| O4 | Conversion postbacks are not built in this phase. | Ship `/api/postbacks` behind a flag now. | Spec §8 places that receiver in the last phase, and decision P12 keeps the conversions table for later. An unused receiver would be an extra attack surface. |
+| O5 | The logged price is read again inside `record_click`. The function takes no price argument. `user_id` is stored as null until Phase 5. | Trust the price the route sends. | The route cannot invent a price. There is no verified public user yet. |

@@ -116,7 +116,18 @@ export function OfferList({
                 </div>
               </details>
               <p className="mt-4 text-sm text-pub-muted">{t.disclosure}</p>
-              <p className="mt-1 text-sm text-pub-muted">{t.ctaLater}</p>
+              <p className="mt-1 text-sm text-pub-muted">{t.indicative}</p>
+              <p className="mt-4">
+                <a
+                  href={`/go/${offer.offer_ref}`}
+                  target="_blank"
+                  rel="sponsored nofollow noopener"
+                  className="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-pub-cta px-5 text-base font-semibold text-white hover:bg-pub-cta-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pub-primary sm:w-fit"
+                >
+                  {t.goToOffer}
+                  <span className="sr-only"> {t.newTab}</span>
+                </a>
+              </p>
               <p className="mt-2">
                 <Link
                   href={localePath(locale, `/companies/${offer.company_slug}`)}

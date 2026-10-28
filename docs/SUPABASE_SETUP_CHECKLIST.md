@@ -64,7 +64,7 @@ Per decision D6, migrations go straight to production, **one at a time**, each f
 ### 5. API keys
 
 - [ ] Project Settings → API Keys: make sure a **publishable key** (`sb_publishable_…`) exists; create one if not. This is the only key the public site needs in Phase 2.
-- [ ] Do not create or copy a secret key yet (Phase 4).
+- [x] Do not create or copy a secret key during Phase 2. Create it when applying Phase 4 (see below).
 
 ### 6. Verify from outside (replace `<ref>` and the key)
 
@@ -122,5 +122,8 @@ values ((select id from public.companies where slug = 'partner'),
 
 ## Later phases
 
-- **Phase 4:** create the secret key (`sb_secret_…`) for the click-logging module only.
+- **Phase 4:** run `supabase/migrations/006_outbound_clicks.sql` in the SQL editor (rollback is `supabase/rollbacks/006_outbound_clicks.down.sql`). Then create a secret key (`sb_secret_…`) and set these on the existing Vercel project, for Production (and Preview if you use it). Do not prefix them with `NEXT_PUBLIC_`. Do not enable sign-ups.
+  - `SUPABASE_SECRET_KEY` — the new secret key. Used only by the click-log module.
+  - `TRACKING_UTM_SOURCE` — `resparts`
+  - `TRACKING_HASH_SECRET` — a random string of at least 32 characters (`openssl rand -base64 32`). This hashes the IP. It is not the database password.
 - **Phase 5:** custom SMTP (SPF, DKIM, DMARC), he/en email templates, CAPTCHA (Turnstile), Auth rate limits, exact redirect URL allowlist, Google provider, re-enable sign-ups **after** the admin check is hardened (finding C3).
