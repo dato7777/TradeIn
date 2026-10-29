@@ -26,6 +26,8 @@ const config: Config = {
           muted: "#475569",
           primary: "#1d4ed8",
           "primary-hover": "#1e40af",
+          "primary-tint": "#EFF6FF",
+          "primary-tint-border": "#BFDBFE",
           cta: "#047857",
           "cta-hover": "#065f46",
           best: "#ecfdf5",

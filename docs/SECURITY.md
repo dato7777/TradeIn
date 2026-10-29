@@ -50,10 +50,28 @@ Proven by `supabase/tests/001_privileges.test.sql` and `002_read_model.test.sql`
 | Elevation of privilege | `search_path` hijack in definer functions | Every new function sets `search_path = ''` and uses schema-qualified names (pgTAP-checked). |
 | XSS / clickjacking | Injected script, framing | Per-request nonce CSP with `strict-dynamic`, `frame-ancestors 'none'`, no `dangerouslySetInnerHTML` (lint error). |
 
+Public accounts were not built. `authenticated` stays equivalent to `anon` on the catalog. Admin login at `/datadmin/login` is unchanged.
+
+### Price alerts
+
+The email address is stored in plaintext in `catalog.price_alert_subscriptions`. The sender has to read it. Column encryption was deferred: the only process that can send already holds `SUPABASE_SECRET_KEY` and `ALERT_TOKEN_SECRET`, so a column key next to those secrets would not add a separate trust boundary. The table is not granted to `anon`, `authenticated`, or `service_role`. The address is deleted when that subscription is deleted. IPs are stored only as HMAC. Tokens are not stored.
+
+| Threat | Example | Mitigation |
+|---|---|---|
+| Mail bombing | Scripted subscribes | Upstash limits (IP, email hash, daily cap). Missing Redis fails closed. Honeypot. Turnstile checked server-side. |
+| Enumeration | Different responses for "already subscribed" | Subscribe returns the same success shape for created, pending, active, suppressed, and capped. Confirmation mail is sent after the response. |
+| Token leakage via Referer | Confirm link leaks to a third party | Token pages send `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, and `X-Robots-Tag: noindex`. |
+| Scanner prefetch | A mailbox prefetch confirms the alert | GET only renders. Confirm and unsubscribe change rows on POST. |
+| Forged webhooks | A fake bounce deletes subscriptions | Svix signature over the raw body. Bad signatures get an empty 401. Suppression is idempotent. |
+| Cron abuse | Anyone hits the evaluate URL | `Authorization: Bearer` compared in constant time. Missing or wrong secret is an empty 401. |
+| PII at rest | Database dump includes emails | Private schema, no API grants. Hashes in logs (first 8 hex chars only). No tokens in logs. |
+| Duplicate sends | Two cron runs overlap | `claim_price_alert` updates only a free or stale claim, and only outside the cooldown. A lost claim does not send. |
+
 ## Incident checklist
 
 1. **Publishable key abused:** Settings → API Keys → create a new publishable key, update Vercel, redeploy, then delete the old key. Impact is limited to the read model.
 2. **Secret key leaked (Phase 4+):** create a new secret key, update Vercel, redeploy, delete the old one, review `outbound_clicks` for anomalies.
+2a. **Alert token or hash secret leaked:** generate a new `ALERT_TOKEN_SECRET`, move the old value to `ALERT_TOKEN_SECRET_PREVIOUS` until old unsubscribe links can be ignored, then remove the previous value. Rotate `ALERT_HASH_SECRET` only if you also accept that existing email hashes will no longer match (subscribers must sign up again). Rotate `CRON_SECRET` and `EMAIL_WEBHOOK_SECRET` in the same deploy as the provider dashboard.
 3. **Suspected table exposure:** run the grants query from `docs/SUPABASE_SETUP_CHECKLIST.md` step 1; re-apply `002_lock_down_admin_tables.sql` (idempotent).
 4. **Bad data published:** hide it with `catalog.offer_publication_overrides` or deactivate the company (`catalog.company_public_profiles.is_active = false`); no scraped data needs to change.
 5. Record what happened and the fix in `docs/SECURITY_REVIEW.md`.

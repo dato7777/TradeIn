@@ -6,7 +6,7 @@ alwaysApply: true
 - Never use FORCE ROW LEVEL SECURITY on existing admin-owned tables. Public sign-ups must have zero admin access (shared auth.users pool risk).
 - Never disable RLS, never use USING (true) on writable tables, never use user_metadata for authorization.
 - Public site reads only through the public read model (RPC/views). Never query raw/admin tables from public code.
-- The Supabase secret key is server-only, used in exactly one module (click logging). Never NEXT_PUBLIC_, never logged.
+- The Supabase secret key is server-only. Exactly one server-only module creates the privileged Supabase client; click logging and price alerts both import it. Never NEXT_PUBLIC_, never logged.
 - On the server use supabase.auth.getClaims() or getUser(); never trust getSession().
 - Validate every input with Zod. Never accept a destination URL or price from the client.
 - Outbound links: rel="sponsored nofollow noopener" (never noreferrer); redirect only to DB-stored, allowlisted https hosts; UTM + opaque click ID; no PII in URLs.

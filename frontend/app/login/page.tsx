@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-export default function LegacyLoginRedirect() {
-  redirect("/datadmin/login");
+export default function LoginGone() {
+  notFound();
 }

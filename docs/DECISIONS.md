@@ -71,3 +71,19 @@ Each entry: decision, alternatives considered, reason. Newest phase last.
 | O3 | If the click insert fails, the visitor is still redirected. If the offer cannot be resolved, or the host is not allowlisted, the response is a 404 or 503 and there is no redirect. | Fail closed on a log error. | Spec §8: never block the user because logging failed, and never redirect to an untrusted host. |
 | O4 | Conversion postbacks are not built in this phase. | Ship `/api/postbacks` behind a flag now. | Spec §8 places that receiver in the last phase, and decision P12 keeps the conversions table for later. An unused receiver would be an extra attack surface. |
 | O5 | The logged price is read again inside `record_click`. The function takes no price argument. `user_id` is stored as null until Phase 5. | Trust the price the route sends. | The route cannot invent a price. There is no verified public user yet. |
+
+## Phase 5 — Email price alerts (replaces accounts)
+
+| # | Decision | Alternatives | Reason |
+|---|---|---|---|
+| A1 | `frontend/lib/server/privileged.ts` is the only module that reads `SUPABASE_SECRET_KEY`. Click logging and price alerts import that client. | Leave the client inside `clicks.ts` and give alerts a second key. | One key, one creation site. The outbound test checks this. |
+| A2 | Alert writes go through `public_site` invoker wrappers that call `read_model` definer functions. `service_role` has no table grant. | One invoker function that writes the table directly. | The privilege tests require every `read_model` function to be definer, and `service_role` cannot select the table. |
+| A3 | "Current price" is the highest offer whose `is_stale` flag is false. | Add a `PRICE_FRESH_HOURS` env var. | Freshness already lives in `catalog.settings` and `offers_for`. A second clock would drift. |
+| A4 | Confirmation mail is scheduled with `waitUntil` from `@vercel/functions`. | `after()` from `next/server`. | Next.js 14.2.35 does not export `after()`. `waitUntil` keeps the send alive after the response on Vercel. |
+| A5 | Subscribe limits use Upstash and fail closed when it is missing. `ALERT_RATE_LIMIT=memory` is allowed only outside production, for tests. | Reuse the in-memory search limiter. | That map is per server instance and would accept mail when Redis is down. |
+| A6 | Public `/login` returns 404. `/datadmin/login` stays. | Remove the admin login as well. | The admin app still signs in there. Public accounts are not being built. |
+| A7 | Cron schedules are once a day (`0 6 * * *` and `0 7 * * *`). `maxDuration` is 10 seconds. | Every few hours. | Vercel Hobby rejects cron expressions that run more than once a day, and the function limit on Hobby is 10 seconds. Pro can tighten both; see the checklist. |
+| A8 | The live app has no nonce CSP. Public responses set `Content-Security-Policy: form-action 'self'` only. | Add a site-wide nonce CSP in this phase. | Admin and the public site share one Next app. A nonce policy without nonces on `/datadmin` would break admin. |
+| A9 | Turnstile's script loads on focus or pointer inside the card, not when the card scrolls into view. | Load on intersection. | The card sits in the first screen on many phones, so an intersection load would run during Lighthouse. |
+| A10 | Webhook signatures are checked with the Svix `Webhook` helper that Resend documents. The body is parsed only after that check succeeds. | `resend.webhooks.verify` from the installed SDK. | That method does not return the payload in this SDK version, and constructing `Resend` requires an API key the verifier does not use. |
+| A11 | `expires_at` is set at confirm and moved forward on each successful alert. Cleanup deletes active rows past `expires_at`. | Delete only by `last_alert_at`. | The cleanup rule in the migration is "active past expires_at". Refreshing the date on send matches "12 months without an alert". |

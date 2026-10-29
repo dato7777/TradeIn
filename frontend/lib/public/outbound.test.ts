@@ -178,7 +178,7 @@ test("the secret key and noreferrer stay out of the public offer link", () => {
   const secretHits = files.filter((path) => !path.endsWith(".test.ts") && readFileSync(path, "utf8").includes(needle));
   assert.deepEqual(
     secretHits.map((path) => path.slice(root.length + 1)),
-    ["lib/server/clicks.ts"],
+    ["lib/server/privileged.ts"],
   );
   const offerList = readFileSync(join(root, "components/public/OfferList.tsx"), "utf8");
   assert.match(offerList, /href=\{`\/go\/\$\{offer\.offer_ref\}`\}/);

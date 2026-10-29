@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { BellIcon } from "@/components/public/BellIcon";
+import { PriceAlertCard } from "@/components/public/PriceAlertCard";
 import { ScrollToTopOffer } from "@/components/public/ScrollToTopOffer";
+import { alertsCopy } from "@/lib/alertsCopy";
 import { catalogCopy, httpsUrl, methodList } from "@/lib/catalogCopy";
 import { formatIls, formatStorage, formatUpdatedAgo } from "@/lib/public/format";
 import { localePath } from "@/lib/public/paths";
@@ -11,21 +14,41 @@ export function OfferList({
   offers,
   grade,
   suggestions,
+  alert,
 }: {
   locale: PublicLocale;
   offers: OfferRow[];
   grade: string;
   suggestions: { href: string; label: string }[];
+  alert?: {
+    modelName: string;
+    modelSlug: string;
+    storageGb: number;
+    grade: string;
+    siteKey: string | null;
+  };
 }) {
   const t = catalogCopy[locale];
   const best = offers[0]?.price;
+  const shortcut = alert ? (
+    <a
+      href="#price-alert"
+      className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-pub-primary"
+    >
+      <BellIcon className="h-4 w-4" />
+      {alertsCopy[locale].headerShortcut}
+    </a>
+  ) : null;
 
   if (offers.length === 0) {
     return (
       <section aria-labelledby="offers-title" className="flex flex-col gap-4">
-        <h2 id="offers-title" className="text-2xl font-bold">
-          {t.noOffers}
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="offers-title" className="text-2xl font-bold">
+            {t.noOffers}
+          </h2>
+          {shortcut}
+        </div>
         {suggestions.length > 0 ? (
           <div>
             <h3 className="mb-2 font-semibold">{t.tryInstead}</h3>
@@ -43,15 +66,26 @@ export function OfferList({
             </ul>
           </div>
         ) : null}
+        {alert ? (
+          <PriceAlertCard
+            key={`${alert.modelSlug}-${alert.storageGb}-${alert.grade}-compact`}
+            locale={locale}
+            variant="compact"
+            {...alert}
+          />
+        ) : null}
       </section>
     );
   }
 
   return (
     <section aria-labelledby="offers-title" className="flex flex-col gap-4">
-      <h2 id="offers-title" className="text-2xl font-bold">
-        {t.offersTitle}
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="offers-title" className="text-2xl font-bold">
+          {t.offersTitle}
+        </h2>
+        {shortcut}
+      </div>
       <ScrollToTopOffer />
       <ol className="flex flex-col gap-4">
         {offers.map((offer, index) => {
@@ -139,6 +173,14 @@ export function OfferList({
           );
         })}
       </ol>
+      {alert ? (
+        <PriceAlertCard
+          key={`${alert.modelSlug}-${alert.storageGb}-${alert.grade}-full`}
+          locale={locale}
+          variant="full"
+          {...alert}
+        />
+      ) : null}
     </section>
   );
 }

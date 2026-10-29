@@ -76,7 +76,19 @@ export async function ModelView({
         showPendingNote={confirmed}
       />
       {confirmed && grade ? (
-        <OfferList locale={locale} offers={offers} grade={grade} suggestions={suggestions} />
+        <OfferList
+          locale={locale}
+          offers={offers}
+          grade={grade}
+          suggestions={suggestions}
+          alert={{
+            modelName: name,
+            modelSlug: model.model_slug,
+            storageGb: storage,
+            grade,
+            siteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? null,
+          }}
+        />
       ) : null}
     </div>
   );

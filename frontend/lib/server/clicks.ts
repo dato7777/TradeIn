@@ -1,11 +1,11 @@
 import "server-only";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { PrivilegedConfigError, privilegedClient } from "@/lib/server/privileged";
 import { hashIpUa, type TrackedLink } from "@/lib/public/outbound";
 
 /**
- * The only module that reads SUPABASE_SECRET_KEY.
- * It resolves an offer and writes the click log. It does not talk to the browser.
+ * Resolves an offer and writes the click log. The secret key is read only in
+ * lib/server/privileged.ts.
  */
 
 const resolvedOffer = z.object({
@@ -33,27 +33,13 @@ export class ClickLogError extends Error {
   }
 }
 
-function clickClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY;
-  if (!url || !key?.startsWith("sb_secret_")) throw new ClickLogError("config");
-  return createClient(url, key, {
-    db: { schema: "public_site" },
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    global: {
-      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
-    },
-  });
-}
-
-let client: ReturnType<typeof clickClient> | undefined;
-
 function rpcClient() {
   try {
-    client ??= clickClient();
-    return client;
+    return privilegedClient();
   } catch (error) {
-    if (error instanceof ClickLogError) throw error;
+    if (error instanceof PrivilegedConfigError || error instanceof ClickLogError) {
+      throw new ClickLogError("config");
+    }
     throw new ClickLogError("config");
   }
 }
