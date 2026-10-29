@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { scrollSearchIntoView } from "@/components/public/scrollSearch";
 import { catalogCopy } from "@/lib/catalogCopy";
 import {
   localeHome,
@@ -71,6 +72,12 @@ export function PublicHeader({ locale }: { locale: PublicLocale }) {
             href={`${localeHome(locale)}#search`}
             aria-label={catalogCopy[locale].searchAria}
             className="inline-flex h-11 w-11 items-center justify-center rounded-[10px] text-pub-fg hover:bg-pub-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pub-primary"
+            onClick={(event) => {
+              if (pathname !== localeHome(locale)) return;
+              if (!document.getElementById("search")) return;
+              event.preventDefault();
+              scrollSearchIntoView();
+            }}
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none">
               <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="2" />

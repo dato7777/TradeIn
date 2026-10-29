@@ -2,16 +2,19 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/public/Breadcrumbs";
 import { ModelCard } from "@/components/public/ModelCard";
 import { brandLabel, catalogCopy } from "@/lib/catalogCopy";
-import { publicModelName } from "@/lib/public/modelName";
+import { compareModelNames, publicModelName } from "@/lib/public/modelName";
 import { listModels } from "@/lib/public/catalog";
-import { brandPath } from "@/lib/public/paths";
 import { brandSchema } from "@/lib/public/schemas";
 import type { PublicLocale } from "@/lib/publicCopy";
 
 export async function BrandView({ locale, brand }: { locale: PublicLocale; brand: string }) {
   const parsed = brandSchema.safeParse(brand);
   if (!parsed.success) notFound();
-  const models = await listModels(parsed.data);
+  const first = await listModels(parsed.data, { limit: 100, offset: 0 });
+  const rest = first.length < 100 ? [] : await listModels(parsed.data, { limit: 100, offset: 100 });
+  const models = [...first, ...rest].sort((a, b) =>
+    compareModelNames(a.display_name_en, b.display_name_en, "en"),
+  );
   const t = catalogCopy[locale];
   const name = brandLabel(locale, parsed.data);
 

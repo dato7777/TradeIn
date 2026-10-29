@@ -21,7 +21,7 @@ export function PublicShell({
     <div
       lang={locale}
       dir={locale === "he" ? "rtl" : "ltr"}
-      className={`${heebo.className} flex min-h-dvh w-full min-w-0 max-w-full flex-col overflow-x-clip bg-pub-bg text-pub-fg antialiased`}
+      className={`${heebo.className} flex min-h-dvh w-full min-w-0 max-w-full flex-col bg-pub-bg text-pub-fg antialiased`}
     >
       <a
         href="#main"

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { scrollSearchIntoView } from "@/components/public/scrollSearch";
 import { catalogCopy } from "@/lib/catalogCopy";
 import { publicModelName } from "@/lib/public/modelName";
 import { modelPath } from "@/lib/public/paths";
@@ -31,7 +32,6 @@ export function ModelSearch({ locale }: { locale: PublicLocale }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [message, setMessage] = useState("");
-  const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -71,13 +71,18 @@ export function ModelSearch({ locale }: { locale: PublicLocale }) {
     router.push(modelPath(locale, hit.brand, hit.model_slug));
   }
 
+  useEffect(() => {
+    if (window.location.hash !== "#search") return;
+    scrollSearchIntoView();
+  }, []);
+
   return (
-    <div ref={boxRef} className="relative w-full max-w-xl">
-      <label htmlFor="search" className="mb-2 block text-sm font-semibold text-pub-fg">
+    <div id="search" className="relative w-full max-w-xl scroll-mt-24">
+      <label htmlFor="model-query" className="mb-2 block text-sm font-semibold text-pub-fg">
         {t.searchLabel}
       </label>
       <input
-        id="search"
+        id="model-query"
         role="combobox"
         aria-expanded={open}
         aria-controls={listId}

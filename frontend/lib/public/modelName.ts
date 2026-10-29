@@ -67,3 +67,8 @@ export function publicModelName(locale: PublicLocale, nameHe: string, nameEn: st
   if (HEBREW.test(nameHe)) return nameHe;
   return toHebrewModelName(nameEn || nameHe);
 }
+
+/** Numeric alphabetical order of the English model name, used in both languages. */
+export function compareModelNames(a: string, b: string, locale: PublicLocale): number {
+  return a.localeCompare(b, locale === "he" ? "he" : "en", { numeric: true, sensitivity: "base" });
+}

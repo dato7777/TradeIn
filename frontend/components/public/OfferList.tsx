@@ -64,40 +64,57 @@ export function OfferList({
             <li
               key={offer.offer_ref}
               id={index === 0 ? "top-offer" : undefined}
-              className={`scroll-mt-24 rounded-xl border border-pub-border bg-white p-5 shadow-sm`}
+              className="scroll-mt-24 rounded-xl border-2 border-slate-300 bg-white px-4 py-3 shadow-sm"
             >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3 className="text-xl font-bold">{name}</h3>
-                {isBest ? (
-                  <span className="rounded-full bg-pub-best px-3 py-1 text-sm font-semibold text-pub-best-fg">
-                    {t.bestPrice}
-                  </span>
-                ) : null}
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-bold">
+                      <Link
+                        href={localePath(locale, `/companies/${offer.company_slug}`)}
+                        className="rounded-[10px] hover:text-pub-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pub-primary"
+                      >
+                        {name}
+                      </Link>
+                    </h3>
+                    {isBest ? (
+                      <span className="rounded-full bg-pub-best px-2.5 py-0.5 text-sm font-semibold text-pub-best-fg">
+                        {t.bestPrice}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-3xl font-bold tracking-tight text-pub-fg">
+                    {formatIls(offer.price, locale)}
+                  </p>
+                  <p className="mt-1 text-sm text-pub-muted">
+                    {t.updated(formatUpdatedAgo(offer.last_updated_at, locale))}
+                    {offer.is_stale ? <span className="font-medium text-pub-warning"> · {t.stale}</span> : null}
+                  </p>
+                  {index === 0 && offers.length > 1 ? (
+                    <p className="mt-1 text-sm font-semibold text-pub-primary">{t.moreBelow}</p>
+                  ) : null}
+                </div>
+                <a
+                  href={`/go/${offer.offer_ref}`}
+                  target="_blank"
+                  rel="sponsored nofollow noopener"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] bg-pub-cta px-4 text-base font-semibold text-white hover:bg-pub-cta-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pub-primary"
+                >
+                  {t.goToOffer}
+                  <span className="sr-only"> {t.newTab}</span>
+                </a>
               </div>
-              <p className="mt-3 text-4xl font-bold tracking-tight text-pub-fg">
-                {formatIls(offer.price, locale)}
+              <p className="mt-1.5 text-sm text-pub-muted">
+                <span className="font-semibold text-pub-fg">{t.payout}:</span>{" "}
+                {methodList(locale, "payout", offer.payout_methods)}
+                {payoutTime ? ` · ${payoutTime}` : ""}
+                <span className="px-1">·</span>
+                <span className="font-semibold text-pub-fg">{t.delivery}:</span>{" "}
+                {methodList(locale, "delivery", offer.delivery_methods)}
               </p>
-              {index === 0 && offers.length > 1 ? (
-                <p className="mt-3 text-sm font-semibold text-pub-primary">{t.moreBelow}</p>
-              ) : null}
-              <p className="mt-2 text-sm text-pub-muted">{t.updated(formatUpdatedAgo(offer.last_updated_at, locale))}</p>
-              {offer.is_stale ? <p className="mt-1 text-sm font-medium text-pub-warning">{t.stale}</p> : null}
-              <dl className="mt-4 grid gap-2 text-sm">
-                <div>
-                  <dt className="font-semibold">{t.payout}</dt>
-                  <dd className="text-pub-muted">
-                    {methodList(locale, "payout", offer.payout_methods)}
-                    {payoutTime ? ` · ${payoutTime}` : ""}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">{t.delivery}</dt>
-                  <dd className="text-pub-muted">{methodList(locale, "delivery", offer.delivery_methods)}</dd>
-                </div>
-              </dl>
-              <details className="mt-4 rounded-[10px] border border-pub-border bg-pub-surface p-3">
+              <details className="mt-1.5 rounded-[10px] border border-slate-300 bg-pub-surface px-3 py-1">
                 <summary className="min-h-11 cursor-pointer font-semibold">{t.policySummary(grade)}</summary>
-                <div className="mt-2 text-sm text-pub-muted">
+                <div className="pb-2 text-sm text-pub-muted">
                   {offer.company_grade_label ? (
                     <p>
                       {t.gradeLabel}: {offer.company_grade_label}
@@ -107,7 +124,7 @@ export function OfferList({
                   {policyHref ? (
                     <a
                       href={policyHref}
-                      className="mt-2 inline-flex min-h-11 items-center text-pub-primary underline"
+                      className="mt-1 inline-flex min-h-11 items-center text-pub-primary underline"
                       rel="noopener"
                     >
                       {t.website}
@@ -115,26 +132,8 @@ export function OfferList({
                   ) : null}
                 </div>
               </details>
-              <p className="mt-4 text-sm text-pub-muted">{t.disclosure}</p>
-              <p className="mt-1 text-sm text-pub-muted">{t.indicative}</p>
-              <p className="mt-4">
-                <a
-                  href={`/go/${offer.offer_ref}`}
-                  target="_blank"
-                  rel="sponsored nofollow noopener"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-pub-cta px-5 text-base font-semibold text-white hover:bg-pub-cta-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pub-primary sm:w-fit"
-                >
-                  {t.goToOffer}
-                  <span className="sr-only"> {t.newTab}</span>
-                </a>
-              </p>
-              <p className="mt-2">
-                <Link
-                  href={localePath(locale, `/companies/${offer.company_slug}`)}
-                  className="inline-flex min-h-11 items-center text-sm font-semibold text-pub-primary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pub-primary"
-                >
-                  {name}
-                </Link>
+              <p className="mt-1.5 text-xs leading-snug text-pub-muted">
+                {t.disclosure} {t.indicative}
               </p>
             </li>
           );
